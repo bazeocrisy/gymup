@@ -10,7 +10,7 @@
 <body>
   <div class="app">
 
-    <!-- FLOATING HOME BUTTON (hidden on landing) -->
+    <!-- FLOATING HOME BUTTON -->
     <button id="homeBtn" class="home-btn hidden" type="button" aria-label="Home">
       <span>🏠</span>
     </button>
@@ -61,7 +61,6 @@
          ============================================ -->
     <main id="customView" class="hidden">
 
-      <!-- STEP 1: Plan -->
       <section class="card wizard-step" id="customStepPlan">
         <h2 class="card-title">🎯 Plan Your Workout</h2>
 
@@ -76,65 +75,104 @@
         </div>
 
         <label class="label label-inline">🔥 Exercises</label>
+        <p class="hint-text">Tap <strong>−</strong> or <strong>+</strong> to adjust reps</p>
+
         <div class="custom-exercise-list">
-          <div class="custom-exercise-row">
-            <label class="check-row compact">
+          <div class="custom-exercise-row-v2">
+            <label class="check-row compact ex-toggle">
               <input type="checkbox" class="ex-enable" data-ex="pushups" checked />
-              <span class="check-label">Push-ups</span>
+              <span class="check-label">
+                <span class="ex-icon">💪</span>
+                Push-ups
+              </span>
             </label>
-            <div class="reps-input-wrap">
-              <input type="number" class="text-input reps-input" data-ex="pushups" min="1" value="12" />
-              <span class="reps-unit">reps</span>
+            <div class="reps-stepper" data-ex="pushups">
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="dec">−</button>
+              <div class="reps-display">
+                <span class="reps-value" data-ex-value="pushups">12</span>
+                <span class="reps-unit-label">reps</span>
+              </div>
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="inc">+</button>
             </div>
           </div>
-          <div class="custom-exercise-row">
-            <label class="check-row compact">
+
+          <div class="custom-exercise-row-v2">
+            <label class="check-row compact ex-toggle">
               <input type="checkbox" class="ex-enable" data-ex="situps" checked />
-              <span class="check-label">Sit-ups</span>
+              <span class="check-label">
+                <span class="ex-icon">🔥</span>
+                Sit-ups
+              </span>
             </label>
-            <div class="reps-input-wrap">
-              <input type="number" class="text-input reps-input" data-ex="situps" min="1" value="15" />
-              <span class="reps-unit">reps</span>
+            <div class="reps-stepper" data-ex="situps">
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="dec">−</button>
+              <div class="reps-display">
+                <span class="reps-value" data-ex-value="situps">15</span>
+                <span class="reps-unit-label">reps</span>
+              </div>
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="inc">+</button>
             </div>
           </div>
-          <div class="custom-exercise-row">
-            <label class="check-row compact">
+
+          <div class="custom-exercise-row-v2">
+            <label class="check-row compact ex-toggle">
               <input type="checkbox" class="ex-enable" data-ex="squats" checked />
-              <span class="check-label">Squats</span>
+              <span class="check-label">
+                <span class="ex-icon">🦵</span>
+                Squats
+              </span>
             </label>
-            <div class="reps-input-wrap">
-              <input type="number" class="text-input reps-input" data-ex="squats" min="1" value="15" />
-              <span class="reps-unit">reps</span>
+            <div class="reps-stepper" data-ex="squats">
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="dec">−</button>
+              <div class="reps-display">
+                <span class="reps-value" data-ex-value="squats">15</span>
+                <span class="reps-unit-label">reps</span>
+              </div>
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="inc">+</button>
             </div>
           </div>
-          <div class="custom-exercise-row">
-            <label class="check-row compact">
+
+          <div class="custom-exercise-row-v2">
+            <label class="check-row compact ex-toggle">
               <input type="checkbox" class="ex-enable" data-ex="plank" checked />
-              <span class="check-label">Plank</span>
+              <span class="check-label">
+                <span class="ex-icon">🧱</span>
+                Plank
+              </span>
             </label>
-            <div class="reps-input-wrap">
-              <input type="number" class="text-input reps-input" data-ex="plank" min="1" value="20" />
-              <span class="reps-unit">sec</span>
+            <div class="reps-stepper" data-ex="plank">
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="dec">−</button>
+              <div class="reps-display">
+                <span class="reps-value" data-ex-value="plank">20</span>
+                <span class="reps-unit-label">sec</span>
+              </div>
+              <button type="button" class="stepper-btn stepper-btn-sm" data-action="inc">+</button>
             </div>
           </div>
         </div>
 
         <label class="label label-inline">🚶 Walk</label>
-        <div class="custom-exercise-row">
-          <label class="check-row compact">
+        <div class="custom-exercise-row-v2">
+          <label class="check-row compact ex-toggle">
             <input type="checkbox" id="customWalkEnable" />
-            <span class="check-label">Include walk</span>
+            <span class="check-label">
+              <span class="ex-icon">🚶</span>
+              Include walk
+            </span>
           </label>
-          <div class="reps-input-wrap">
-            <input type="number" class="text-input reps-input" id="customWalkMiles" min="0" step="0.1" value="3.0" />
-            <span class="reps-unit">mi</span>
+          <div class="reps-stepper" id="customWalkStepper">
+            <button type="button" class="stepper-btn stepper-btn-sm" data-action="dec">−</button>
+            <div class="reps-display">
+              <span class="reps-value" id="customWalkMilesValue">3.0</span>
+              <span class="reps-unit-label">mi</span>
+            </div>
+            <button type="button" class="stepper-btn stepper-btn-sm" data-action="inc">+</button>
           </div>
         </div>
 
         <button id="customStartBtn" class="btn btn-primary btn-xl" style="margin-top:18px;">Start Workout</button>
       </section>
 
-      <!-- STEP 2: Coached workout (reuses the guided exercise screens with custom plan) -->
       <section class="card guided-card hidden" id="customRoundIntro">
         <p class="round-label" id="customRoundLabel">Round 1 of 4</p>
         <div class="round-number" id="customRoundNumber">1</div>
@@ -181,7 +219,6 @@
         <button id="customWalkSkipBtn" class="btn btn-ghost">Skip Walk</button>
       </section>
 
-      <!-- STEP 3: Log & Save -->
       <section class="card guided-card hidden" id="customFinish">
         <div class="check-mark big">🏆</div>
         <h2 class="guided-title">Workout Complete</h2>
@@ -211,7 +248,7 @@
     </main>
 
     <!-- ============================================
-         WIZARD 2: Guided Workout (fixed beginner plan)
+         WIZARD 2: Guided Workout
          ============================================ -->
     <main id="guidedView" class="hidden">
 

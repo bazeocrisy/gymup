@@ -1,15 +1,16 @@
 /* ==========================================================
    GymUp — Workout Tracker
-   Version: 3.3.0
+   Version: 3.4.0
    Build:   2026-04-18
 
-   Changes in v3.3.0:
-   - Floating home button (persists on every screen except landing)
-   - Wake Lock API keeps screen awake during active workout
-   - Delete workouts from history with a tap
+   Changes in v3.4.0:
+   - Reps now adjusted via +/- stepper buttons (more discoverable)
+   - Walk miles also uses stepper
+   - Hint text on custom plan screen
+   - Visual dimming on rep controls when exercise is disabled
    ========================================================== */
 
-const APP_VERSION = "3.3.0";
+const APP_VERSION = "3.4.0";
 const BUILD_DATE  = "2026-04-18";
 
 const STORAGE_KEY  = "gymup_workouts";
@@ -21,6 +22,17 @@ const GUIDED_PLAN = [
   { id: "squats",  name: "Squats",   reps: 15,  unit: "reps", icon: "🦵", timer: null },
   { id: "plank",   name: "Plank",    reps: 20,  unit: "sec",  icon: "🧱", timer: 20 }
 ];
+
+// Step sizes and bounds for each exercise's stepper
+const REP_CONFIG = {
+  pushups: { min: 1, max: 200, step: 1 },
+  situps:  { min: 1, max: 200, step: 1 },
+  squats:  { min: 1, max: 200, step: 1 },
+  plank:   { min: 5, max: 300, step: 5 }   // in seconds
+};
+
+// Walk miles stepper
+const WALK_CONFIG = { min: 0.5, max: 26, step: 0.5 };
 
 const EXERCISE_INFO = {
   pushups: {
@@ -50,21 +62,17 @@ const EXERCISE_INFO = {
 };
 
 /* ==========================================================
-   WAKE LOCK (keep screen awake during workout)
+   WAKE LOCK
    ========================================================== */
 
 let wakeLockSentinel = null;
 
 async function requestWakeLock() {
-  if (!("wakeLock" in navigator)) return; // Unsupported; fail silently
+  if (!("wakeLock" in navigator)) return;
   try {
     wakeLockSentinel = await navigator.wakeLock.request("screen");
-    // Re-acquire if released (e.g. tab hidden then shown)
-    wakeLockSentinel.addEventListener("release", () => {
-      wakeLockSentinel = null;
-    });
+    wakeLockSentinel.addEventListener("release", () => { wakeLockSentinel = null; });
   } catch (e) {
-    // Don't disrupt the workout if this fails
     console.warn("Wake lock not acquired:", e.message);
   }
 }
@@ -76,7 +84,6 @@ async function releaseWakeLock() {
   }
 }
 
-// If the tab is hidden then returns to foreground during a workout, re-acquire.
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && isWorkoutActive()) {
     requestWakeLock();
@@ -84,12 +91,10 @@ document.addEventListener("visibilitychange", () => {
 });
 
 function isWorkoutActive() {
-  // True when user is mid-workout (not on landing, start, or summary screens)
   return currentView !== "landing" && !isOnIdleScreen();
 }
 
 function isOnIdleScreen() {
-  // Screens that don't need the wake lock: plan config, start, summary
   const idleScreens = ["customStepPlan", "customSummary", "guidedStart", "guidedSummary"];
   return idleScreens.some(id => {
     const el = document.getElementById(id);
@@ -117,7 +122,6 @@ function showView(name) {
   if (name === "custom")  customView.classList.remove("hidden");
   if (name === "guided")  guidedView.classList.remove("hidden");
 
-  // Show/hide floating home button
   if (name === "landing") {
     homeBtn.classList.add("hidden");
   } else {
@@ -127,7 +131,6 @@ function showView(name) {
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
-// Wizard picker buttons
 document.querySelectorAll(".wizard-card").forEach(btn => {
   btn.addEventListener("click", () => {
     const w = btn.dataset.wizard;
@@ -141,19 +144,12 @@ document.querySelectorAll(".wizard-card").forEach(btn => {
   });
 });
 
-// Back-to-home buttons (on summary screens)
 document.querySelectorAll("[data-back]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    goHome(false); // Summary screens are safe to leave without confirm
-  });
+  btn.addEventListener("click", () => { goHome(false); });
 });
 
-// Floating home button
-homeBtn.addEventListener("click", () => {
-  goHome(true);
-});
+homeBtn.addEventListener("click", () => { goHome(true); });
 
-// Confirm before abandoning an in-progress workout
 function goHome(confirmIfActive) {
   if (confirmIfActive && isWorkoutActive() && !isOnIdleScreen()) {
     const ok = confirm("You're in the middle of a workout. Leave without saving?");
@@ -165,7 +161,6 @@ function goHome(confirmIfActive) {
   renderHistory();
 }
 
-// Clear all data
 document.getElementById("clearAllBtn").addEventListener("click", () => {
   const confirmed = confirm("This will permanently delete all saved workouts. Continue?");
   if (!confirmed) return;
@@ -235,8 +230,21 @@ function escapeHtml(str) {
     .replace(/'/g, "&#039;");
 }
 
+// Clamp a value to the configured bounds
+function clampValue(val, config) {
+  if (val < config.min) return config.min;
+  if (val > config.max) return config.max;
+  return val;
+}
+
+// Round-trip a value through its step so display stays clean
+function snapToStep(val, config) {
+  const decimals = (String(config.step).split(".")[1] || "").length;
+  return parseFloat(val.toFixed(decimals));
+}
+
 /* ==========================================================
-   INFO MODAL (shared)
+   INFO MODAL
    ========================================================== */
 
 const infoModal         = document.getElementById("infoModal");
@@ -331,7 +339,7 @@ function createCoachEngine(config) {
 
     startExerciseLiveTimer();
     el.showScreen("exercise");
-    requestWakeLock(); // keep screen on while actively working out
+    requestWakeLock();
   }
 
   function startExerciseLiveTimer() {
@@ -494,11 +502,21 @@ let customEngine = null;
 let customDateValue = todayISO();
 let customRounds = 4;
 
+// Current rep values (kept in JS state; UI mirrors this)
+const customRepValues = {
+  pushups: 12,
+  situps:  15,
+  squats:  15,
+  plank:   20
+};
+let customWalkMiles = 3.0;
+
 function initCustomWizard() {
   const customDate = document.getElementById("customDate");
   customDate.value = customDateValue;
   customDate.addEventListener("change", () => { customDateValue = customDate.value; });
 
+  // Rounds stepper
   const stepper = document.getElementById("customRoundsStepper");
   const valueEl = document.getElementById("customRoundsValue");
   stepper.querySelectorAll(".stepper-btn").forEach(btn => {
@@ -508,6 +526,43 @@ function initCustomWizard() {
       valueEl.textContent = customRounds;
     });
   });
+
+  // Reps steppers (one per exercise)
+  document.querySelectorAll(".reps-stepper").forEach(stepper => {
+    const exId = stepper.dataset.ex;
+    if (!exId) return;
+    const config = REP_CONFIG[exId];
+    if (!config) return;
+
+    stepper.querySelectorAll(".stepper-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        let val = customRepValues[exId];
+        if (btn.dataset.action === "inc") val += config.step;
+        if (btn.dataset.action === "dec") val -= config.step;
+        val = clampValue(val, config);
+        val = snapToStep(val, config);
+        customRepValues[exId] = val;
+        const display = document.querySelector(`[data-ex-value="${exId}"]`);
+        if (display) display.textContent = val;
+      });
+    });
+  });
+
+  // Walk miles stepper
+  const walkStepper = document.getElementById("customWalkStepper");
+  if (walkStepper) {
+    walkStepper.querySelectorAll(".stepper-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        let val = customWalkMiles;
+        if (btn.dataset.action === "inc") val += WALK_CONFIG.step;
+        if (btn.dataset.action === "dec") val -= WALK_CONFIG.step;
+        val = clampValue(val, WALK_CONFIG);
+        val = snapToStep(val, WALK_CONFIG);
+        customWalkMiles = val;
+        document.getElementById("customWalkMilesValue").textContent = val.toFixed(1);
+      });
+    });
+  }
 
   document.getElementById("customStartBtn").addEventListener("click", startCustomWorkout);
 
@@ -570,14 +625,20 @@ function resetCustomWizard() {
   customDate.value = customDateValue;
   document.getElementById("customRoundsValue").textContent = customRounds;
 
-  const defaults = { pushups: 12, situps: 15, squats: 15, plank: 20 };
-  document.querySelectorAll(".ex-enable").forEach(cb => cb.checked = true);
-  document.querySelectorAll(".reps-input").forEach(inp => {
-    const id = inp.dataset.ex;
-    if (id && defaults[id] !== undefined) inp.value = defaults[id];
+  // Reset rep values and UI
+  customRepValues.pushups = 12;
+  customRepValues.situps  = 15;
+  customRepValues.squats  = 15;
+  customRepValues.plank   = 20;
+  Object.keys(customRepValues).forEach(id => {
+    const display = document.querySelector(`[data-ex-value="${id}"]`);
+    if (display) display.textContent = customRepValues[id];
   });
+  customWalkMiles = 3.0;
+  document.getElementById("customWalkMilesValue").textContent = "3.0";
+
+  document.querySelectorAll(".ex-enable").forEach(cb => cb.checked = true);
   document.getElementById("customWalkEnable").checked = false;
-  document.getElementById("customWalkMiles").value = "3.0";
   document.getElementById("customWalkActual").value = "";
   document.getElementById("customNotes").value = "";
   document.getElementById("customDuration").value = "";
@@ -607,8 +668,7 @@ function startCustomWorkout() {
   document.querySelectorAll(".ex-enable").forEach(cb => {
     if (!cb.checked) return;
     const id = cb.dataset.ex;
-    const repsInput = document.querySelector(`.reps-input[data-ex="${id}"]`);
-    const reps = parseInt(repsInput.value, 10) || 1;
+    const reps = customRepValues[id];
     const meta = GUIDED_PLAN.find(p => p.id === id);
     selected.push({
       id:    id,
@@ -626,10 +686,10 @@ function startCustomWorkout() {
   }
 
   const includeWalk = document.getElementById("customWalkEnable").checked;
-  const walkMiles = parseFloat(document.getElementById("customWalkMiles").value) || 0;
+  const walkMiles = customWalkMiles;
 
   if (includeWalk) {
-    document.getElementById("customWalkTarget").textContent = `Goal: ${walkMiles} miles`;
+    document.getElementById("customWalkTarget").textContent = `Goal: ${walkMiles.toFixed(1)} miles`;
   }
 
   customEngine = createCoachEngine({
@@ -804,11 +864,10 @@ function saveGuidedWorkout() {
 }
 
 /* ==========================================================
-   STATUS + SAVE + HISTORY + SUMMARY (shared)
+   STATUS + SAVE + HISTORY + SUMMARY
    ========================================================== */
 
 function generateWorkoutId() {
-  // Simple unique ID for deletion targeting
   return `w_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
@@ -830,7 +889,6 @@ function computeStatus(w) {
 
 function commitWorkout(workout) {
   const workouts = loadWorkouts();
-  // Match by id if available, otherwise fall back to same-date replacement (for legacy entries)
   let existingIndex = workouts.findIndex(w => w.id === workout.id);
   if (existingIndex === -1) {
     existingIndex = workouts.findIndex(w => w.date === workout.date && !w.id);
@@ -859,7 +917,6 @@ function saveWorkouts(list) {
 }
 
 function deleteWorkout(identifier) {
-  // identifier can be an `id` (preferred) or a timestamp fallback for legacy entries
   const confirmed = confirm("Delete this workout? This cannot be undone.");
   if (!confirmed) return;
   const workouts = loadWorkouts();
@@ -1006,7 +1063,6 @@ function renderHistory() {
       ? `<div class="history-note">"${escapeHtml(truncate(w.notes, 80))}"</div>`
       : "";
 
-    // Use id if we have one, otherwise fall back to timestamp
     const deleteTarget = w.id || String(w.timestamp);
 
     return `
@@ -1026,7 +1082,6 @@ function renderHistory() {
     `;
   }).join("");
 
-  // Wire up delete buttons
   historyList.querySelectorAll(".history-delete-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();

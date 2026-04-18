@@ -1,5 +1,5 @@
 /* ==========================================================
-   GymUp v3.3 — Bright & Colorful Theme
+   GymUp v3.4 — Bright & Colorful Theme
    ========================================================== */
 
 * {
@@ -80,7 +80,6 @@ html, body {
 
 .home-btn span { line-height: 1; }
 
-/* Safe-area inset for iPhone notch */
 @supports (padding: env(safe-area-inset-top)) {
   .home-btn {
     top: calc(14px + env(safe-area-inset-top));
@@ -211,6 +210,19 @@ html, body {
 
 .label-inline { margin-top: 14px; }
 
+.hint-text {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-top: -4px;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.hint-text strong {
+  color: var(--orange);
+  font-weight: 800;
+}
+
 .date-input,
 .text-input,
 .notes-input {
@@ -253,7 +265,7 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* ---------- Stepper ---------- */
+/* ---------- Rounds stepper (big, used for rounds) ---------- */
 .stepper {
   display: flex;
   align-items: center;
@@ -280,13 +292,15 @@ html, body {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
+  transition: transform 0.1s, opacity 0.15s;
 }
 
 .stepper-btn:active { transform: translateY(2px); }
 
 .stepper-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .stepper-value {
@@ -298,46 +312,98 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Custom exercise list ---------- */
+/* ---------- Smaller stepper used inline for reps ---------- */
+.stepper-btn-sm {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  box-shadow: 0 3px 8px rgba(255, 107, 53, 0.3);
+}
+
+/* ---------- New custom exercise row (v3.4) ---------- */
 .custom-exercise-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.custom-exercise-row {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
 
-.custom-exercise-row .check-row.compact {
+.custom-exercise-row-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.custom-exercise-row-v2:has(.ex-enable:checked) {
+  border-color: var(--orange);
+  background: #fff;
+}
+
+.custom-exercise-row-v2 .ex-toggle {
   flex: 1;
-  min-height: 48px;
-  padding: 10px 12px;
+  background: transparent !important;
+  border: none !important;
+  padding: 4px 0;
+  min-height: auto;
 }
 
-.reps-input-wrap {
-  position: relative;
-  width: 110px;
-  flex-shrink: 0;
+.custom-exercise-row-v2 .ex-toggle:has(input:checked) {
+  background: transparent !important;
+  transform: none !important;
 }
 
-.reps-input {
-  padding-right: 46px;
-  text-align: right;
-  font-weight: 700;
+.ex-icon {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 1.15rem;
 }
 
-.reps-unit {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  font-weight: 600;
+/* The reps stepper (inline, tappable) */
+.reps-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #fff;
+  border: 2px solid var(--orange);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+
+.custom-exercise-row-v2:not(:has(.ex-enable:checked)) .reps-stepper {
+  opacity: 0.4;
   pointer-events: none;
+  border-color: var(--border);
+}
+
+.reps-display {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.reps-value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.reps-unit-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
 }
 
 /* ---------- Check rows ---------- */
@@ -401,6 +467,8 @@ html, body {
 .check-label {
   font-size: 1rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
 }
 
 /* ---------- Buttons ---------- */
@@ -692,7 +760,6 @@ html, body {
 .status-tag.complete { background: var(--grad-success); }
 .status-tag.partial  { background: var(--grad-warm); }
 
-/* ---------- History delete button ---------- */
 .history-delete-btn {
   position: absolute;
   top: 8px;
