@@ -1,5 +1,5 @@
 /* ==========================================================
-   GymUp — Bright & Colorful Theme (v2)
+   GymUp — Bright & Colorful Theme (v3)
    ========================================================== */
 
 * {
@@ -231,6 +231,22 @@ html, body {
   font-size: 0.92rem;
   margin-bottom: 12px;
   font-weight: 500;
+}
+
+/* ---------- Metrics row (duration + calories side by side) ---------- */
+.metrics-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.metrics-row .metric-field {
+  flex: 1;
+}
+
+.metrics-row .label-inline {
+  margin-top: 0;
+  margin-bottom: 6px;
 }
 
 /* ---------- Check rows ---------- */
@@ -577,6 +593,27 @@ html, body {
   font-weight: 500;
 }
 
+/* ---------- Status tag in history ---------- */
+.status-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 10px;
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.status-tag.complete {
+  background: var(--grad-success);
+}
+
+.status-tag.partial {
+  background: var(--grad-warm);
+}
+
 /* ---------- Danger zone / Footer ---------- */
 .danger-zone {
   margin-top: 28px;
@@ -591,6 +628,15 @@ html, body {
   font-size: 0.88rem;
   letter-spacing: 0.5px;
   font-weight: 600;
+}
+
+.build-info {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  opacity: 0.65;
+  letter-spacing: 0.5px;
 }
 
 /* ==========================================================
@@ -622,7 +668,6 @@ html, body {
   font-weight: 500;
 }
 
-/* Plan preview on start screen */
 .plan-preview {
   background: var(--surface-2);
   border: 2px solid var(--border);
@@ -654,7 +699,6 @@ html, body {
   font-weight: 800;
 }
 
-/* Round intro */
 .round-label {
   color: var(--text-dim);
   font-size: 0.88rem;
@@ -675,7 +719,6 @@ html, body {
   margin: 10px 0 18px;
 }
 
-/* Exercise screen */
 .exercise-icon {
   font-size: 4rem;
   margin-bottom: 10px;
@@ -702,7 +745,6 @@ html, body {
   align-self: center;
 }
 
-/* Timer */
 .timer-section {
   margin-bottom: 20px;
 }
@@ -736,7 +778,6 @@ html, body {
   margin-bottom: 16px;
 }
 
-/* Rest / Complete screen */
 .check-mark {
   font-size: 4rem;
   width: 100px;

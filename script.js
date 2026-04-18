@@ -1,8 +1,21 @@
 /* ==========================================================
-   GymUp v2 — Workout Tracker with Quick Log + Guided Modes
+   GymUp — Workout Tracker
+   Version: 3.0.0
+   Build:   2026-04-18
+   Changes in v3.0.0:
+   - Per-exercise counts instead of booleans
+   - TOTAL_ROUNDS constant replaces hardcoded "4"s
+   - Optional duration + calories metrics
+   - Four explicit workout statuses
+   - Status tag shown in history
+   - Build info footer
    ========================================================== */
 
-const STORAGE_KEY = "gymup_workouts";
+const APP_VERSION = "3.0.0";
+const BUILD_DATE  = "2026-04-18";
+
+const STORAGE_KEY  = "gymup_workouts";
+const TOTAL_ROUNDS = 4;
 
 // ---------- Exercise definitions (used by guided mode) ----------
 const EXERCISES = [
@@ -12,10 +25,8 @@ const EXERCISES = [
   { id: "plank",   name: "Plank",    target: "20 sec",  icon: "🧱", timer: 20 }
 ];
 
-const TOTAL_ROUNDS = 4;
-
 // ---------- Mode toggle ----------
-const modeButtons = document.querySelectorAll(".mode-btn");
+const modeButtons  = document.querySelectorAll(".mode-btn");
 const quickModeEl  = document.getElementById("quickMode");
 const guidedModeEl = document.getElementById("guidedMode");
 
@@ -36,7 +47,7 @@ modeButtons.forEach(btn => {
 });
 
 /* ==========================================================
-   QUICK LOG MODE (original flow)
+   QUICK LOG MODE
    ========================================================== */
 
 const dateInput      = document.getElementById("workoutDate");
@@ -47,6 +58,8 @@ const plankEl        = document.getElementById("plank");
 const walkEl         = document.getElementById("walk");
 const milesEl        = document.getElementById("miles");
 const notesEl        = document.getElementById("notes");
+const durationEl     = document.getElementById("duration");
+const caloriesEl     = document.getElementById("calories");
 const roundChecks    = document.querySelectorAll(".round-check");
 const roundStatusEl  = document.getElementById("roundStatus");
 
@@ -58,15 +71,24 @@ const summarySection = document.getElementById("summarySection");
 const summaryContent = document.getElementById("summaryContent");
 const historyList    = document.getElementById("historyList");
 
+// ---------- Initialize on load ----------
 document.addEventListener("DOMContentLoaded", () => {
   setTodayAsDefault();
   updateRoundStatus();
   renderHistory();
+  renderBuildInfo();
 });
 
+// Show app version + build date in footer
+function renderBuildInfo() {
+  const el = document.getElementById("buildInfo");
+  if (el) {
+    el.textContent = `GymUp v${APP_VERSION} \u2022 Build ${BUILD_DATE}`;
+  }
+}
+
 function setTodayAsDefault() {
-  const today = new Date();
-  dateInput.value = isoDateFromDate(today);
+  dateInput.value = isoDateFromDate(new Date());
 }
 
 function isoDateFromDate(d) {
@@ -77,7 +99,7 @@ roundChecks.forEach(cb => cb.addEventListener("change", updateRoundStatus));
 
 function updateRoundStatus() {
   const count = Array.from(roundChecks).filter(cb => cb.checked).length;
-  roundStatusEl.textContent = `${count} of 4 rounds complete`;
+  roundStatusEl.textContent = `${count} of ${TOTAL_ROUNDS} rounds complete`;
 }
 
 saveBtn.addEventListener("click", () => {
@@ -88,15 +110,26 @@ saveBtn.addEventListener("click", () => {
 });
 
 function gatherQuickData() {
+  // For Quick Log, per-round counts aren't tracked, so we infer:
+  // if the exercise box is checked, assume it was done in every completed round.
+  const roundsCompleted = Array.from(roundChecks).filter(cb => cb.checked).length;
   return {
     date:              dateInput.value || isoDateFromDate(new Date()),
-    roundsCompleted:   Array.from(roundChecks).filter(cb => cb.checked).length,
-    pushupsCompleted:  pushupsEl.checked,
-    situpsCompleted:   situpsEl.checked,
-    squatsCompleted:   squatsEl.checked,
-    plankCompleted:    plankEl.checked,
+    roundsCompleted:   roundsCompleted,
+    exerciseCounts: {
+      pushups: pushupsEl.checked ? roundsCompleted : 0,
+      situps:  situpsEl.checked  ? roundsCompleted : 0,
+      squats:  squatsEl.checked  ? roundsCompleted : 0,
+      plank:   plankEl.checked   ? roundsCompleted : 0
+    },
+    pushupsCompleted:  pushupsEl.checked && roundsCompleted === TOTAL_ROUNDS,
+    situpsCompleted:   situpsEl.checked  && roundsCompleted === TOTAL_ROUNDS,
+    squatsCompleted:   squatsEl.checked  && roundsCompleted === TOTAL_ROUNDS,
+    plankCompleted:    plankEl.checked   && roundsCompleted === TOTAL_ROUNDS,
     walkCompleted:     walkEl.checked,
     milesWalked:       parseFloat(milesEl.value) || 0,
+    durationMinutes:   parseInt(durationEl?.value, 10) || 0,
+    caloriesBurned:    parseInt(caloriesEl?.value, 10) || 0,
     notes:             notesEl.value.trim(),
     mode:              "quick",
     timestamp:         Date.now()
@@ -111,6 +144,8 @@ resetFormBtn.addEventListener("click", () => {
   walkEl.checked    = false;
   milesEl.value     = "";
   notesEl.value     = "";
+  if (durationEl) durationEl.value = "";
+  if (caloriesEl) caloriesEl.value = "";
   roundChecks.forEach(cb => cb.checked = false);
   updateRoundStatus();
   summarySection.classList.add("hidden");
@@ -129,7 +164,6 @@ clearAllBtn.addEventListener("click", () => {
    GUIDED WORKOUT MODE
    ========================================================== */
 
-// Screens
 const screens = {
   start:      document.getElementById("guidedStart"),
   roundIntro: document.getElementById("guidedRoundIntro"),
@@ -140,7 +174,6 @@ const screens = {
   summary:    document.getElementById("guidedSummary")
 };
 
-// Buttons & elements
 const startWorkoutBtn    = document.getElementById("startWorkoutBtn");
 const beginRoundBtn      = document.getElementById("beginRoundBtn");
 const exerciseDoneBtn    = document.getElementById("exerciseDoneBtn");
@@ -164,20 +197,22 @@ const restTitle          = document.getElementById("restTitle");
 const restTimer          = document.getElementById("restTimer");
 const guidedMiles        = document.getElementById("guidedMiles");
 const guidedNotes        = document.getElementById("guidedNotes");
+const guidedDuration     = document.getElementById("guidedDuration");
+const guidedCalories     = document.getElementById("guidedCalories");
 const guidedSummaryContent = document.getElementById("guidedSummaryContent");
 
-// Guided state
 let guidedState = freshGuidedState();
 let timerInterval = null;
 let restInterval  = null;
 
 function freshGuidedState() {
   return {
-    currentRound: 0,          // 1..4 once started
-    currentExercise: 0,       // index into EXERCISES
+    currentRound: 0,
+    currentExercise: 0,
     roundsCompleted: 0,
-    exerciseCompletions: {
-      pushups: false, situps: false, squats: false, plank: false
+    // Counts each "Done" tap per exercise across all rounds
+    exerciseCounts: {
+      pushups: 0, situps: 0, squats: 0, plank: 0
     },
     walkCompleted: false,
     milesWalked: 0,
@@ -213,7 +248,6 @@ function showRoundIntro() {
   stopRestTimer();
 }
 
-// ---------- Begin round ----------
 beginRoundBtn.addEventListener("click", () => {
   guidedState.currentExercise = 0;
   showExercise();
@@ -226,7 +260,6 @@ function showExercise() {
   exerciseName.textContent = ex.name;
   exerciseTarget.textContent = ex.target;
 
-  // Timer handling (plank only)
   stopExerciseTimer();
   if (ex.timer) {
     timerSection.classList.remove("hidden");
@@ -259,7 +292,6 @@ timerStartBtn.addEventListener("click", () => {
       stopExerciseTimer();
       timerStartBtn.textContent = "Done!";
       timerStartBtn.disabled = true;
-      // Brief haptic-style visual cue: tap Done to continue
       if (navigator.vibrate) navigator.vibrate(200);
     } else {
       timerDisplay.textContent = remaining;
@@ -278,15 +310,14 @@ function stopExerciseTimer() {
 // ---------- Exercise controls ----------
 exerciseDoneBtn.addEventListener("click", () => {
   const ex = EXERCISES[guidedState.currentExercise];
-  guidedState.exerciseCompletions[ex.id] = true;
+  // Increment count for the exercise just completed
+  guidedState.exerciseCounts[ex.id] += 1;
   stopExerciseTimer();
 
-  // Advance to next exercise, or finish round
   if (guidedState.currentExercise < EXERCISES.length - 1) {
     guidedState.currentExercise += 1;
     showExercise();
   } else {
-    // Round complete
     guidedState.roundsCompleted = guidedState.currentRound;
     showRest();
   }
@@ -295,10 +326,14 @@ exerciseDoneBtn.addEventListener("click", () => {
 exerciseBackBtn.addEventListener("click", () => {
   stopExerciseTimer();
   if (guidedState.currentExercise > 0) {
+    // Back means the previous Done was a mistake; decrement that exercise's count
+    const prevEx = EXERCISES[guidedState.currentExercise - 1];
+    if (guidedState.exerciseCounts[prevEx.id] > 0) {
+      guidedState.exerciseCounts[prevEx.id] -= 1;
+    }
     guidedState.currentExercise -= 1;
     showExercise();
   } else {
-    // Back from first exercise returns to round intro
     showRoundIntro();
   }
 });
@@ -336,7 +371,6 @@ function stopRestTimer() {
 nextRoundBtn.addEventListener("click", () => {
   stopRestTimer();
   if (guidedState.currentRound >= TOTAL_ROUNDS) {
-    // Go to walk screen
     showScreen("walk");
   } else {
     guidedState.currentRound += 1;
@@ -360,15 +394,21 @@ walkSkipBtn.addEventListener("click", () => {
 // ---------- Finish / Save ----------
 guidedSaveBtn.addEventListener("click", () => {
   guidedState.notes = guidedNotes.value.trim();
+  const counts = guidedState.exerciseCounts;
+
+  // Completion only when count matches every round
   const workout = {
     date:              isoDateFromDate(new Date()),
     roundsCompleted:   guidedState.roundsCompleted,
-    pushupsCompleted:  guidedState.exerciseCompletions.pushups,
-    situpsCompleted:   guidedState.exerciseCompletions.situps,
-    squatsCompleted:   guidedState.exerciseCompletions.squats,
-    plankCompleted:    guidedState.exerciseCompletions.plank,
+    exerciseCounts:    { ...counts },
+    pushupsCompleted:  counts.pushups === TOTAL_ROUNDS,
+    situpsCompleted:   counts.situps  === TOTAL_ROUNDS,
+    squatsCompleted:   counts.squats  === TOTAL_ROUNDS,
+    plankCompleted:    counts.plank   === TOTAL_ROUNDS,
     walkCompleted:     guidedState.walkCompleted,
     milesWalked:       guidedState.milesWalked,
+    durationMinutes:   parseInt(guidedDuration?.value, 10) || 0,
+    caloriesBurned:    parseInt(guidedCalories?.value, 10) || 0,
     notes:             guidedState.notes,
     mode:              "guided",
     timestamp:         Date.now()
@@ -381,12 +421,38 @@ guidedSaveBtn.addEventListener("click", () => {
 guidedNewBtn.addEventListener("click", () => {
   guidedNotes.value = "";
   guidedMiles.value = "";
+  if (guidedDuration) guidedDuration.value = "";
+  if (guidedCalories) guidedCalories.value = "";
   resetGuided();
 });
 
 function stopAllTimers() {
   stopExerciseTimer();
   stopRestTimer();
+}
+
+/* ==========================================================
+   STATUS LOGIC (centralized)
+   ========================================================== */
+
+function computeStatus(w) {
+  const allExercises = w.pushupsCompleted && w.situpsCompleted &&
+                       w.squatsCompleted && w.plankCompleted;
+  const fullWorkout  = allExercises && w.roundsCompleted === TOTAL_ROUNDS;
+  const anyWorkout   = w.roundsCompleted > 0 ||
+                       w.pushupsCompleted || w.situpsCompleted ||
+                       w.squatsCompleted  || w.plankCompleted;
+
+  if (fullWorkout && w.walkCompleted) {
+    return { label: "Full Workout + Walk Complete", cls: "complete" };
+  }
+  if (fullWorkout && !w.walkCompleted) {
+    return { label: "Workout Complete (No Walk)", cls: "complete" };
+  }
+  if (!anyWorkout && w.walkCompleted) {
+    return { label: "Walk Only", cls: "partial" };
+  }
+  return { label: "Partial Workout", cls: "partial" };
 }
 
 /* ==========================================================
@@ -420,51 +486,61 @@ function saveWorkouts(list) {
 }
 
 function renderSummary(w, targetEl, containerEl) {
-  const allExercises = w.pushupsCompleted && w.situpsCompleted &&
-                       w.squatsCompleted && w.plankCompleted;
-  const fullWorkout  = allExercises && w.roundsCompleted === 4;
-  const fullDay      = fullWorkout && w.walkCompleted;
-
-  let headlineClass = "partial";
-  let headlineText  = "Partial workout logged. Progress is progress.";
-  if (fullDay) {
-    headlineClass = "complete";
-    headlineText  = "Full workout and walk complete.";
-  } else if (fullWorkout) {
-    headlineClass = "complete";
-    headlineText  = "All rounds complete. Walk not logged.";
-  }
-
+  const status = computeStatus(w);
   const milesText = w.milesWalked > 0 ? ` (${w.milesWalked} mi)` : "";
+  const counts = w.exerciseCounts || {};
+
+  // If counts are available, show "X/TOTAL_ROUNDS"; otherwise fall back to Yes/No
+  const exerciseRow = (label, id, doneBool) => {
+    const n = counts[id];
+    if (typeof n === "number") {
+      const full = n === TOTAL_ROUNDS;
+      const cls  = full ? "yes" : (n > 0 ? "" : "no");
+      return `
+        <div class="summary-row">
+          <span class="label-text">${label}</span>
+          <span class="value ${cls}">${n}/${TOTAL_ROUNDS}</span>
+        </div>`;
+    }
+    return `
+      <div class="summary-row">
+        <span class="label-text">${label}</span>
+        ${yesNo(doneBool)}
+      </div>`;
+  };
+
+  // Optional metrics rows
+  let metricsHtml = "";
+  const metricParts = [];
+  if (w.durationMinutes > 0) metricParts.push(`
+    <div class="summary-row">
+      <span class="label-text">⏱️ Duration</span>
+      <span class="value">${w.durationMinutes} min</span>
+    </div>`);
+  if (w.caloriesBurned > 0) metricParts.push(`
+    <div class="summary-row">
+      <span class="label-text">🔥 Calories</span>
+      <span class="value">${w.caloriesBurned}</span>
+    </div>`);
+  metricsHtml = metricParts.join("");
 
   targetEl.innerHTML = `
     <div class="summary-date">${formatDate(w.date)}</div>
-    <div class="summary-headline ${headlineClass}">${headlineText}</div>
+    <div class="summary-headline ${status.cls}">${status.label}</div>
 
     <div class="summary-row">
       <span class="label-text">Rounds completed</span>
-      <span class="value">${w.roundsCompleted} of 4</span>
+      <span class="value">${w.roundsCompleted} of ${TOTAL_ROUNDS}</span>
     </div>
-    <div class="summary-row">
-      <span class="label-text">Push-ups</span>
-      ${yesNo(w.pushupsCompleted)}
-    </div>
-    <div class="summary-row">
-      <span class="label-text">Sit-ups</span>
-      ${yesNo(w.situpsCompleted)}
-    </div>
-    <div class="summary-row">
-      <span class="label-text">Squats</span>
-      ${yesNo(w.squatsCompleted)}
-    </div>
-    <div class="summary-row">
-      <span class="label-text">Plank</span>
-      ${yesNo(w.plankCompleted)}
-    </div>
+    ${exerciseRow("Push-ups", "pushups", w.pushupsCompleted)}
+    ${exerciseRow("Sit-ups",  "situps",  w.situpsCompleted)}
+    ${exerciseRow("Squats",   "squats",  w.squatsCompleted)}
+    ${exerciseRow("Plank",    "plank",   w.plankCompleted)}
     <div class="summary-row">
       <span class="label-text">Walk${milesText}</span>
       ${yesNo(w.walkCompleted)}
     </div>
+    ${metricsHtml}
 
     ${w.notes ? `<div class="summary-notes">${escapeHtml(w.notes)}</div>` : ""}
   `;
@@ -489,19 +565,31 @@ function renderHistory() {
   workouts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
   historyList.innerHTML = workouts.map(w => {
+    const status = computeStatus(w);
     const walkText = w.walkCompleted
       ? (w.milesWalked > 0 ? `Walk: ${w.milesWalked} mi` : "Walk: Yes")
       : "Walk: No";
     const modeTag = w.mode === "guided" ? " &bull; Guided" : "";
+
+    // Optional metrics in history
+    const metricBits = [];
+    if (w.durationMinutes > 0) metricBits.push(`${w.durationMinutes} min`);
+    if (w.caloriesBurned > 0)  metricBits.push(`${w.caloriesBurned} cal`);
+    const metricText = metricBits.length
+      ? ` &nbsp;&bull;&nbsp; ${metricBits.join(" &bull; ")}`
+      : "";
+
     const notePreview = w.notes
       ? `<div class="history-note">"${escapeHtml(truncate(w.notes, 80))}"</div>`
       : "";
+
     return `
       <div class="history-item">
         <div class="history-date">${formatDate(w.date)}</div>
         <div class="history-meta">
-          Rounds: ${w.roundsCompleted}/4 &nbsp;&bull;&nbsp; ${walkText}${modeTag}
+          Rounds: ${w.roundsCompleted}/${TOTAL_ROUNDS} &nbsp;&bull;&nbsp; ${walkText}${modeTag}${metricText}
         </div>
+        <span class="status-tag ${status.cls}">${status.label}</span>
         ${notePreview}
       </div>
     `;
