@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0f1419" />
+  <title>Military Calisthenics Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+      <h1>Military Calisthenics Tracker</h1>
+      <p class="subtitle">Track your daily workout, rounds, walk, and notes</p>
+    </header>
+
+    <main>
+
+      <!-- DATE -->
+      <section class="card">
+        <label for="workoutDate" class="label">Date</label>
+        <input type="date" id="workoutDate" class="date-input" />
+      </section>
+
+      <!-- WORKOUT PLAN -->
+      <section class="card plan-card">
+        <h2 class="card-title">Today's Plan</h2>
+        <ul class="plan-list">
+          <li><span>Rounds</span><strong>4</strong></li>
+          <li><span>Push-ups</span><strong>12 reps</strong></li>
+          <li><span>Sit-ups</span><strong>15 reps</strong></li>
+          <li><span>Squats</span><strong>15 reps</strong></li>
+          <li><span>Plank</span><strong>20 sec</strong></li>
+          <li><span>Walk</span><strong>3 miles</strong></li>
+        </ul>
+      </section>
+
+      <!-- EXERCISE TRACKING -->
+      <section class="card">
+        <h2 class="card-title">Exercises</h2>
+        <div class="check-list">
+          <label class="check-row">
+            <input type="checkbox" id="pushups" />
+            <span class="check-label">Push-ups</span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" id="situps" />
+            <span class="check-label">Sit-ups</span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" id="squats" />
+            <span class="check-label">Squats</span>
+          </label>
+          <label class="check-row">
+            <input type="checkbox" id="plank" />
+            <span class="check-label">Plank</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- ROUND TRACKING -->
+      <section class="card">
+        <h2 class="card-title">Rounds Completed</h2>
+        <div class="round-grid">
+          <label class="round-box">
+            <input type="checkbox" class="round-check" data-round="1" />
+            <span>Round 1</span>
+          </label>
+          <label class="round-box">
+            <input type="checkbox" class="round-check" data-round="2" />
+            <span>Round 2</span>
+          </label>
+          <label class="round-box">
+            <input type="checkbox" class="round-check" data-round="3" />
+            <span>Round 3</span>
+          </label>
+          <label class="round-box">
+            <input type="checkbox" class="round-check" data-round="4" />
+            <span>Round 4</span>
+          </label>
+        </div>
+        <p class="round-status" id="roundStatus">0 of 4 rounds complete</p>
+      </section>
+
+      <!-- WALK TRACKING -->
+      <section class="card">
+        <h2 class="card-title">Walk</h2>
+        <p class="goal-text">Goal: 3 miles</p>
+        <label class="check-row">
+          <input type="checkbox" id="walk" />
+          <span class="check-label">Walk completed</span>
+        </label>
+        <label for="miles" class="label label-inline">Miles walked (optional)</label>
+        <input type="number" id="miles" class="text-input" min="0" step="0.1" placeholder="e.g. 3.0" />
+      </section>
+
+      <!-- NOTES -->
+      <section class="card">
+        <h2 class="card-title">Notes</h2>
+        <textarea id="notes" class="notes-input" rows="4" placeholder="Energy, soreness, knees, anything learned..."></textarea>
+      </section>
+
+      <!-- SAVE BUTTON -->
+      <button id="saveBtn" class="btn btn-primary">Save Workout</button>
+      <button id="resetFormBtn" class="btn btn-ghost">Reset Today's Form</button>
+
+      <!-- SUMMARY (hidden until saved) -->
+      <section class="card summary-card hidden" id="summarySection">
+        <h2 class="card-title">Workout Summary</h2>
+        <div id="summaryContent"></div>
+      </section>
+
+      <!-- HISTORY -->
+      <section class="card">
+        <h2 class="card-title">History</h2>
+        <div id="historyList" class="history-list">
+          <p class="empty-text">No workouts saved yet.</p>
+        </div>
+      </section>
+
+      <!-- DANGER ZONE -->
+      <section class="danger-zone">
+        <button id="clearAllBtn" class="btn btn-danger">Clear All Saved Data</button>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Stay disciplined. One day at a time.</p>
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
