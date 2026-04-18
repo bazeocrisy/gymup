@@ -10,6 +10,11 @@
 <body>
   <div class="app">
 
+    <!-- FLOATING HOME BUTTON (hidden on landing) -->
+    <button id="homeBtn" class="home-btn hidden" type="button" aria-label="Home">
+      <span>🏠</span>
+    </button>
+
     <!-- HEADER -->
     <header class="header">
       <div class="logo-row">
@@ -55,8 +60,6 @@
          WIZARD 1: Pick Your Workout (custom)
          ============================================ -->
     <main id="customView" class="hidden">
-
-      <button class="back-btn" data-back="landing">&larr; Back</button>
 
       <!-- STEP 1: Plan -->
       <section class="card wizard-step" id="customStepPlan">
@@ -211,8 +214,6 @@
          WIZARD 2: Guided Workout (fixed beginner plan)
          ============================================ -->
     <main id="guidedView" class="hidden">
-
-      <button class="back-btn" data-back="landing">&larr; Back</button>
 
       <section class="card guided-card" id="guidedStart">
         <h2 class="guided-title">Ready to Train?</h2>

@@ -1,5 +1,5 @@
 /* ==========================================================
-   GymUp v3.2 — Bright & Colorful Theme
+   GymUp v3.3 — Bright & Colorful Theme
    ========================================================== */
 
 * {
@@ -52,6 +52,42 @@ html, body {
 
 .hidden { display: none !important; }
 
+/* ---------- Floating Home button ---------- */
+.home-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 900;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  font-size: 1.4rem;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.home-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.home-btn span { line-height: 1; }
+
+/* Safe-area inset for iPhone notch */
+@supports (padding: env(safe-area-inset-top)) {
+  .home-btn {
+    top: calc(14px + env(safe-area-inset-top));
+    right: calc(14px + env(safe-area-inset-right));
+  }
+}
+
 /* ---------- Header ---------- */
 .header {
   background: var(--grad-primary);
@@ -86,7 +122,7 @@ html, body {
   font-weight: 500;
 }
 
-/* ---------- Wizard picker (landing) ---------- */
+/* ---------- Wizard picker ---------- */
 .wizard-picker {
   display: flex;
   flex-direction: column;
@@ -141,22 +177,6 @@ html, body {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.88);
 }
-
-/* ---------- Back button ---------- */
-.back-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-dim);
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 700;
-  padding: 6px 0 14px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.back-btn:active { color: var(--text); }
 
 /* ---------- Cards ---------- */
 .card {
@@ -233,7 +253,7 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* ---------- Rounds stepper ---------- */
+/* ---------- Stepper ---------- */
 .stepper {
   display: flex;
   align-items: center;
@@ -612,11 +632,13 @@ html, body {
 }
 
 .history-item {
+  position: relative;
   background: var(--surface-2);
   border: 2px solid var(--border);
   border-left: 5px solid var(--orange);
   border-radius: 10px;
   padding: 13px 14px;
+  padding-right: 48px;
   transition: transform 0.15s;
 }
 
@@ -669,6 +691,34 @@ html, body {
 }
 .status-tag.complete { background: var(--grad-success); }
 .status-tag.partial  { background: var(--grad-warm); }
+
+/* ---------- History delete button ---------- */
+.history-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.history-delete-btn:active,
+.history-delete-btn:hover {
+  background: rgba(255, 59, 92, 0.12);
+  color: var(--danger);
+}
 
 /* ---------- Danger zone / Footer ---------- */
 .danger-zone {

@@ -1,23 +1,19 @@
 /* ==========================================================
    GymUp — Workout Tracker
-   Version: 3.2.0
+   Version: 3.3.0
    Build:   2026-04-18
 
-   Changes in v3.2.0:
-   - Landing page with two wizard cards (Pick Your Workout / Guided)
-   - Wizard 1: custom workout builder (exercises + rounds + reps)
-   - Wizard 2: guided beginner plan (coached)
-   - Both wizards share the coached flow + timing + info modal
-   - Metrics (duration, calories) moved into wizard finish step
-   - RPE effort rating removed
+   Changes in v3.3.0:
+   - Floating home button (persists on every screen except landing)
+   - Wake Lock API keeps screen awake during active workout
+   - Delete workouts from history with a tap
    ========================================================== */
 
-const APP_VERSION = "3.2.0";
+const APP_VERSION = "3.3.0";
 const BUILD_DATE  = "2026-04-18";
 
 const STORAGE_KEY  = "gymup_workouts";
 
-// Default guided plan (fixed beginner workout)
 const GUIDED_ROUNDS = 4;
 const GUIDED_PLAN = [
   { id: "pushups", name: "Push-ups", reps: 12,  unit: "reps", icon: "💪", timer: null },
@@ -26,7 +22,6 @@ const GUIDED_PLAN = [
   { id: "plank",   name: "Plank",    reps: 20,  unit: "sec",  icon: "🧱", timer: 20 }
 ];
 
-// Exercise reference library (for info modal)
 const EXERCISE_INFO = {
   pushups: {
     icon: "💪",
@@ -55,20 +50,80 @@ const EXERCISE_INFO = {
 };
 
 /* ==========================================================
+   WAKE LOCK (keep screen awake during workout)
+   ========================================================== */
+
+let wakeLockSentinel = null;
+
+async function requestWakeLock() {
+  if (!("wakeLock" in navigator)) return; // Unsupported; fail silently
+  try {
+    wakeLockSentinel = await navigator.wakeLock.request("screen");
+    // Re-acquire if released (e.g. tab hidden then shown)
+    wakeLockSentinel.addEventListener("release", () => {
+      wakeLockSentinel = null;
+    });
+  } catch (e) {
+    // Don't disrupt the workout if this fails
+    console.warn("Wake lock not acquired:", e.message);
+  }
+}
+
+async function releaseWakeLock() {
+  if (wakeLockSentinel) {
+    try { await wakeLockSentinel.release(); } catch (e) { /* ignore */ }
+    wakeLockSentinel = null;
+  }
+}
+
+// If the tab is hidden then returns to foreground during a workout, re-acquire.
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && isWorkoutActive()) {
+    requestWakeLock();
+  }
+});
+
+function isWorkoutActive() {
+  // True when user is mid-workout (not on landing, start, or summary screens)
+  return currentView !== "landing" && !isOnIdleScreen();
+}
+
+function isOnIdleScreen() {
+  // Screens that don't need the wake lock: plan config, start, summary
+  const idleScreens = ["customStepPlan", "customSummary", "guidedStart", "guidedSummary"];
+  return idleScreens.some(id => {
+    const el = document.getElementById(id);
+    return el && !el.classList.contains("hidden");
+  });
+}
+
+/* ==========================================================
    VIEW ROUTING
    ========================================================== */
 
 const landingView = document.getElementById("landingView");
 const customView  = document.getElementById("customView");
 const guidedView  = document.getElementById("guidedView");
+const homeBtn     = document.getElementById("homeBtn");
+
+let currentView = "landing";
 
 function showView(name) {
+  currentView = name;
   landingView.classList.add("hidden");
   customView.classList.add("hidden");
   guidedView.classList.add("hidden");
   if (name === "landing") landingView.classList.remove("hidden");
   if (name === "custom")  customView.classList.remove("hidden");
   if (name === "guided")  guidedView.classList.remove("hidden");
+
+  // Show/hide floating home button
+  if (name === "landing") {
+    homeBtn.classList.add("hidden");
+  } else {
+    homeBtn.classList.remove("hidden");
+  }
+
   window.scrollTo({ top: 0, behavior: "instant" });
 }
 
@@ -86,14 +141,29 @@ document.querySelectorAll(".wizard-card").forEach(btn => {
   });
 });
 
-// Back buttons
+// Back-to-home buttons (on summary screens)
 document.querySelectorAll("[data-back]").forEach(btn => {
   btn.addEventListener("click", () => {
-    stopAllTimers();
-    showView("landing");
-    renderHistory();
+    goHome(false); // Summary screens are safe to leave without confirm
   });
 });
+
+// Floating home button
+homeBtn.addEventListener("click", () => {
+  goHome(true);
+});
+
+// Confirm before abandoning an in-progress workout
+function goHome(confirmIfActive) {
+  if (confirmIfActive && isWorkoutActive() && !isOnIdleScreen()) {
+    const ok = confirm("You're in the middle of a workout. Leave without saving?");
+    if (!ok) return;
+  }
+  stopAllTimers();
+  releaseWakeLock();
+  showView("landing");
+  renderHistory();
+}
 
 // Clear all data
 document.getElementById("clearAllBtn").addEventListener("click", () => {
@@ -119,7 +189,6 @@ function renderBuildInfo() {
    SHARED STATE + UTILITIES
    ========================================================== */
 
-// Shared timers across whichever wizard is active
 let exerciseInterval = null;
 let exerciseStartMs  = 0;
 let plankInterval    = null;
@@ -211,13 +280,10 @@ infoModal.addEventListener("click", (e) => {
 
 /* ==========================================================
    COACH ENGINE
-   A single reusable engine that drives a coached workout for
-   any given plan. Both wizards instantiate one of these.
    ========================================================== */
 
 function createCoachEngine(config) {
-  // config: { plan, rounds, includeWalk, walkMiles, elements, onFinishReady }
-  const plan = config.plan;         // array of { id, name, reps, unit, icon, timer? }
+  const plan = config.plan;
   const totalRounds = config.rounds;
   const includeWalk = config.includeWalk;
   const walkMilesGoal = config.walkMiles;
@@ -238,7 +304,6 @@ function createCoachEngine(config) {
     state.exerciseTimings[p.id] = [];
   });
 
-  // ---------- Round intro ----------
   function showRoundIntro() {
     stopAllTimers();
     el.roundLabel.textContent  = `Round ${state.currentRound} of ${totalRounds}`;
@@ -247,7 +312,6 @@ function createCoachEngine(config) {
     el.showScreen("roundIntro");
   }
 
-  // ---------- Exercise screen ----------
   function showExercise() {
     const ex = plan[state.currentExercise];
     el.exerciseRoundLabel.textContent = `Round ${state.currentRound} of ${totalRounds}`;
@@ -255,7 +319,6 @@ function createCoachEngine(config) {
     el.exerciseName.textContent = ex.name;
     el.exerciseTarget.textContent = `${ex.reps} ${ex.unit}`;
 
-    // Plank timer visible only when exercise has a timer
     if (ex.timer) {
       el.timerSection.classList.remove("hidden");
       el.timerDisplay.textContent = ex.timer;
@@ -268,6 +331,7 @@ function createCoachEngine(config) {
 
     startExerciseLiveTimer();
     el.showScreen("exercise");
+    requestWakeLock(); // keep screen on while actively working out
   }
 
   function startExerciseLiveTimer() {
@@ -288,7 +352,6 @@ function createCoachEngine(config) {
     return secs;
   }
 
-  // ---------- Plank countdown ----------
   function startPlankTimer() {
     const ex = plan[state.currentExercise];
     if (!ex.timer) return;
@@ -312,7 +375,6 @@ function createCoachEngine(config) {
     }, 1000);
   }
 
-  // ---------- Done / Back ----------
   function handleDone() {
     const ex = plan[state.currentExercise];
     const elapsed = captureExerciseTime();
@@ -346,7 +408,6 @@ function createCoachEngine(config) {
     }
   }
 
-  // ---------- Rest ----------
   function showRest() {
     const isLast = state.currentRound >= totalRounds;
     el.restTitle.textContent = isLast ? "All Rounds Complete" : `Round ${state.currentRound} Complete`;
@@ -384,6 +445,7 @@ function createCoachEngine(config) {
         el.showScreen("walk");
       } else {
         el.showScreen("finish");
+        releaseWakeLock();
       }
     } else {
       state.currentRound += 1;
@@ -395,21 +457,18 @@ function createCoachEngine(config) {
     state.walkCompleted = true;
     state.milesWalked = miles;
     el.showScreen("finish");
+    releaseWakeLock();
   }
 
   function handleWalkSkip() {
     state.walkCompleted = false;
     state.milesWalked = 0;
     el.showScreen("finish");
+    releaseWakeLock();
   }
 
-  function getState() {
-    return state;
-  }
-
-  function getWalkGoal() {
-    return walkMilesGoal;
-  }
+  function getState() { return state; }
+  function getWalkGoal() { return walkMilesGoal; }
 
   return {
     start: () => { state.currentRound = 1; showRoundIntro(); },
@@ -428,7 +487,7 @@ function createCoachEngine(config) {
 }
 
 /* ==========================================================
-   CUSTOM WIZARD (Wizard 1)
+   CUSTOM WIZARD
    ========================================================== */
 
 let customEngine = null;
@@ -440,7 +499,6 @@ function initCustomWizard() {
   customDate.value = customDateValue;
   customDate.addEventListener("change", () => { customDateValue = customDate.value; });
 
-  // Rounds stepper
   const stepper = document.getElementById("customRoundsStepper");
   const valueEl = document.getElementById("customRoundsValue");
   stepper.querySelectorAll(".stepper-btn").forEach(btn => {
@@ -451,12 +509,8 @@ function initCustomWizard() {
     });
   });
 
-  // Start workout
-  document.getElementById("customStartBtn").addEventListener("click", () => {
-    startCustomWorkout();
-  });
+  document.getElementById("customStartBtn").addEventListener("click", startCustomWorkout);
 
-  // Wire up coached screen buttons (custom)
   const customEl = {
     showScreen: (key) => showCustomScreen(key),
     roundLabel:         document.getElementById("customRoundLabel"),
@@ -473,7 +527,6 @@ function initCustomWizard() {
     restTimer:          document.getElementById("customRestTimer"),
     nextRoundBtn:       document.getElementById("customNextRoundBtn")
   };
-  // Store element refs on the custom wizard for reuse
   window.__customEl = customEl;
 
   document.getElementById("customBeginRoundBtn").addEventListener("click", () => {
@@ -504,13 +557,12 @@ function initCustomWizard() {
   document.getElementById("customWalkSkipBtn").addEventListener("click", () => {
     if (customEngine) customEngine.handleWalkSkip();
   });
-  document.getElementById("customSaveBtn").addEventListener("click", () => {
-    saveCustomWorkout();
-  });
+  document.getElementById("customSaveBtn").addEventListener("click", saveCustomWorkout);
 }
 
 function resetCustomWizard() {
   stopAllTimers();
+  releaseWakeLock();
   customDateValue = todayISO();
   customRounds = 4;
   customEngine = null;
@@ -518,7 +570,6 @@ function resetCustomWizard() {
   customDate.value = customDateValue;
   document.getElementById("customRoundsValue").textContent = customRounds;
 
-  // Reset exercise rows to defaults
   const defaults = { pushups: 12, situps: 15, squats: 15, plank: 20 };
   document.querySelectorAll(".ex-enable").forEach(cb => cb.checked = true);
   document.querySelectorAll(".reps-input").forEach(inp => {
@@ -552,14 +603,12 @@ function showCustomScreen(key) {
 }
 
 function startCustomWorkout() {
-  // Build plan from checked exercises
   const selected = [];
   document.querySelectorAll(".ex-enable").forEach(cb => {
     if (!cb.checked) return;
     const id = cb.dataset.ex;
     const repsInput = document.querySelector(`.reps-input[data-ex="${id}"]`);
     const reps = parseInt(repsInput.value, 10) || 1;
-    // Look up meta from GUIDED_PLAN defaults
     const meta = GUIDED_PLAN.find(p => p.id === id);
     selected.push({
       id:    id,
@@ -567,7 +616,6 @@ function startCustomWorkout() {
       reps:  reps,
       unit:  meta.unit,
       icon:  meta.icon,
-      // Plank gets a countdown timer matching its configured seconds
       timer: id === "plank" ? reps : null
     });
   });
@@ -600,6 +648,7 @@ function saveCustomWorkout() {
   const walkGoal = customEngine.getWalkGoal();
 
   const workout = {
+    id:               generateWorkoutId(),
     date:             customDateValue,
     mode:             "custom",
     totalRounds:      customRounds,
@@ -620,10 +669,11 @@ function saveCustomWorkout() {
   commitWorkout(workout);
   renderSummary(workout, document.getElementById("customSummaryContent"));
   showCustomScreen("summary");
+  releaseWakeLock();
 }
 
 /* ==========================================================
-   GUIDED WIZARD (Wizard 2)
+   GUIDED WIZARD
    ========================================================== */
 
 let guidedEngine = null;
@@ -652,9 +702,7 @@ function initGuidedWizard() {
   };
   window.__guidedEl = guidedEl;
 
-  document.getElementById("startWorkoutBtn").addEventListener("click", () => {
-    startGuidedWorkout();
-  });
+  document.getElementById("startWorkoutBtn").addEventListener("click", startGuidedWorkout);
   document.getElementById("beginRoundBtn").addEventListener("click", () => {
     if (guidedEngine) guidedEngine.showExercise();
   });
@@ -683,13 +731,12 @@ function initGuidedWizard() {
   document.getElementById("walkSkipBtn").addEventListener("click", () => {
     if (guidedEngine) guidedEngine.handleWalkSkip();
   });
-  document.getElementById("guidedSaveBtn").addEventListener("click", () => {
-    saveGuidedWorkout();
-  });
+  document.getElementById("guidedSaveBtn").addEventListener("click", saveGuidedWorkout);
 }
 
 function resetGuided() {
   stopAllTimers();
+  releaseWakeLock();
   guidedEngine = null;
   guidedDateValue = todayISO();
   document.getElementById("guidedDate").value = guidedDateValue;
@@ -732,6 +779,7 @@ function saveGuidedWorkout() {
   const plan = guidedEngine.getPlan();
 
   const workout = {
+    id:               generateWorkoutId(),
     date:             guidedDateValue,
     mode:             "guided",
     totalRounds:      GUIDED_ROUNDS,
@@ -752,11 +800,17 @@ function saveGuidedWorkout() {
   commitWorkout(workout);
   renderSummary(workout, document.getElementById("guidedSummaryContent"));
   showGuidedScreen("summary");
+  releaseWakeLock();
 }
 
 /* ==========================================================
    STATUS + SAVE + HISTORY + SUMMARY (shared)
    ========================================================== */
+
+function generateWorkoutId() {
+  // Simple unique ID for deletion targeting
+  return `w_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
 
 function computeStatus(w) {
   const rounds = w.totalRounds || 0;
@@ -776,7 +830,11 @@ function computeStatus(w) {
 
 function commitWorkout(workout) {
   const workouts = loadWorkouts();
-  const existingIndex = workouts.findIndex(w => w.date === workout.date);
+  // Match by id if available, otherwise fall back to same-date replacement (for legacy entries)
+  let existingIndex = workouts.findIndex(w => w.id === workout.id);
+  if (existingIndex === -1) {
+    existingIndex = workouts.findIndex(w => w.date === workout.date && !w.id);
+  }
   if (existingIndex !== -1) {
     workouts[existingIndex] = workout;
   } else {
@@ -800,6 +858,19 @@ function saveWorkouts(list) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
+function deleteWorkout(identifier) {
+  // identifier can be an `id` (preferred) or a timestamp fallback for legacy entries
+  const confirmed = confirm("Delete this workout? This cannot be undone.");
+  if (!confirmed) return;
+  const workouts = loadWorkouts();
+  const filtered = workouts.filter(w => {
+    if (w.id) return w.id !== identifier;
+    return String(w.timestamp) !== identifier;
+  });
+  saveWorkouts(filtered);
+  renderHistory();
+}
+
 function renderSummary(w, targetEl) {
   const status  = computeStatus(w);
   const rounds  = w.totalRounds || 0;
@@ -808,7 +879,6 @@ function renderSummary(w, targetEl) {
   const timings = w.exerciseTimings || {};
   const milesText = w.milesWalked > 0 ? ` (${w.milesWalked} mi)` : "";
 
-  // Per-exercise rows + timing breakdowns
   const exerciseBlocks = plan.map(p => {
     const n = counts[p.id] || 0;
     const countCls = n === rounds ? "yes" : (n > 0 ? "" : "no");
@@ -845,7 +915,6 @@ function renderSummary(w, targetEl) {
     return html;
   }).join("");
 
-  // Rest breakdown
   let restHtml = "";
   if (Array.isArray(w.restTimings) && w.restTimings.length > 0) {
     const chips = w.restTimings.map((secs, i) => `
@@ -863,7 +932,6 @@ function renderSummary(w, targetEl) {
       </div>`;
   }
 
-  // Metrics
   const metricParts = [];
   if (w.durationMinutes > 0) metricParts.push(`
     <div class="summary-row">
@@ -938,8 +1006,16 @@ function renderHistory() {
       ? `<div class="history-note">"${escapeHtml(truncate(w.notes, 80))}"</div>`
       : "";
 
+    // Use id if we have one, otherwise fall back to timestamp
+    const deleteTarget = w.id || String(w.timestamp);
+
     return `
       <div class="history-item">
+        <button
+          class="history-delete-btn"
+          type="button"
+          aria-label="Delete this workout"
+          data-delete="${escapeHtml(deleteTarget)}">&times;</button>
         <div class="history-date">${formatDate(w.date)}</div>
         <div class="history-meta">
           Rounds: ${w.roundsCompleted}/${rounds} &nbsp;&bull;&nbsp; ${walkText}${modeTag}${metricText}
@@ -949,4 +1025,13 @@ function renderHistory() {
       </div>
     `;
   }).join("");
+
+  // Wire up delete buttons
+  historyList.querySelectorAll(".history-delete-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.delete;
+      deleteWorkout(id);
+    });
+  });
 }
