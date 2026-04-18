@@ -1,5 +1,5 @@
 /* ==========================================================
-   GymUp v3.1 — Bright & Colorful Theme
+   GymUp v3.2 — Bright & Colorful Theme
    ========================================================== */
 
 * {
@@ -50,12 +50,14 @@ html, body {
   padding: 16px 14px 40px;
 }
 
+.hidden { display: none !important; }
+
 /* ---------- Header ---------- */
 .header {
   background: var(--grad-primary);
   border-radius: 16px;
   padding: 22px 20px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   box-shadow: 0 8px 24px rgba(255, 107, 53, 0.25);
   color: #fff;
   text-align: center;
@@ -84,40 +86,77 @@ html, body {
   font-weight: 500;
 }
 
-/* ---------- Mode Toggle ---------- */
-.mode-toggle {
+/* ---------- Wizard picker (landing) ---------- */
+.wizard-picker {
   display: flex;
-  gap: 6px;
-  background: #fff;
-  padding: 6px;
-  border-radius: 14px;
-  margin-bottom: 16px;
-  border: 2px solid var(--border);
-  box-shadow: 0 2px 10px rgba(255, 107, 53, 0.08);
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.mode-btn {
-  flex: 1;
-  padding: 12px 10px;
+.wizard-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 22px 20px;
   border: none;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 0.92rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-  min-height: 44px;
-}
-
-.mode-btn.active {
+  border-radius: 16px;
   background: var(--grad-primary);
   color: #fff;
-  box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
+  cursor: pointer;
+  font-family: inherit;
+  box-shadow: 0 8px 22px rgba(255, 107, 53, 0.28);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
+
+.wizard-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 3px 12px rgba(255, 107, 53, 0.28);
+}
+
+.wizard-card-accent {
+  background: var(--grad-accent);
+  box-shadow: 0 8px 22px rgba(124, 92, 255, 0.28);
+}
+
+.wizard-card-accent:active {
+  box-shadow: 0 3px 12px rgba(124, 92, 255, 0.28);
+}
+
+.wizard-card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 6px;
+}
+
+.wizard-card-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.wizard-card-sub {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* ---------- Back button ---------- */
+.back-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 6px 0 14px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.back-btn:active { color: var(--text); }
 
 /* ---------- Cards ---------- */
 .card {
@@ -139,43 +178,6 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-}
-
-/* ---------- Plan ---------- */
-.plan-card {
-  background: var(--grad-accent);
-  border: none;
-  color: #fff;
-  box-shadow: 0 6px 18px rgba(124, 92, 255, 0.3);
-}
-
-.plan-card .card-title { color: #fff; }
-
-.plan-list { list-style: none; }
-
-.plan-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 11px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  font-size: 0.98rem;
-}
-
-.plan-list li:last-child { border-bottom: none; }
-
-.plan-list span {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-}
-
-.plan-list strong {
-  color: #fff;
-  font-weight: 700;
-  background: rgba(255, 255, 255, 0.18);
-  padding: 3px 10px;
-  border-radius: 12px;
-  font-size: 0.9rem;
 }
 
 /* ---------- Labels / Inputs ---------- */
@@ -216,18 +218,12 @@ html, body {
   min-height: 90px;
 }
 
-.goal-text {
-  color: var(--text-dim);
-  font-size: 0.92rem;
-  margin-bottom: 12px;
-  font-weight: 500;
-}
-
 /* ---------- Metrics row ---------- */
 .metrics-row {
   display: flex;
   gap: 10px;
   margin-top: 14px;
+  margin-bottom: 14px;
 }
 
 .metrics-row .metric-field { flex: 1; }
@@ -237,34 +233,91 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* ---------- RPE scale (1-10 effort buttons) ---------- */
-.rpe-scale {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.rpe-btn {
-  padding: 12px 0;
-  border: 2px solid var(--border);
+/* ---------- Rounds stepper ---------- */
+.stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
   background: var(--surface-2);
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 800;
-  border-radius: 10px;
-  cursor: pointer;
-  font-family: inherit;
-  min-height: 46px;
-  transition: all 0.15s;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
 }
 
-.rpe-btn.selected {
+.stepper-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: none;
   background: var(--grad-primary);
   color: #fff;
-  border-color: transparent;
+  font-size: 1.6rem;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
-  transform: scale(1.05);
+}
+
+.stepper-btn:active { transform: translateY(2px); }
+
+.stepper-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stepper-value {
+  font-size: 2rem;
+  font-weight: 900;
+  min-width: 60px;
+  text-align: center;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Custom exercise list ---------- */
+.custom-exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.custom-exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-exercise-row .check-row.compact {
+  flex: 1;
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.reps-input-wrap {
+  position: relative;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.reps-input {
+  padding-right: 46px;
+  text-align: right;
+  font-weight: 700;
+}
+
+.reps-unit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  font-weight: 600;
+  pointer-events: none;
 }
 
 /* ---------- Check rows ---------- */
@@ -286,6 +339,8 @@ html, body {
   transition: all 0.2s;
   min-height: 54px;
 }
+
+.check-row.compact { padding: 10px 12px; min-height: 48px; }
 
 .check-row input[type="checkbox"] {
   appearance: none;
@@ -321,72 +376,11 @@ html, body {
 .check-row:has(input:checked) {
   background: linear-gradient(135deg, #e8faf0 0%, #d4f5e0 100%);
   border-color: var(--green);
-  transform: translateX(2px);
 }
 
 .check-label {
-  font-size: 1.02rem;
-  font-weight: 600;
-}
-
-/* ---------- Round grid ---------- */
-.round-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.round-box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px 10px;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 700;
   font-size: 1rem;
-  min-height: 58px;
-  text-align: center;
-  transition: all 0.2s;
-  color: var(--text);
-}
-
-.round-box input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.round-box:nth-child(1):has(input:checked) {
-  background: var(--grad-warm); border-color: transparent;
-  color: #fff; transform: scale(1.02);
-  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.35);
-}
-.round-box:nth-child(2):has(input:checked) {
-  background: var(--grad-primary); border-color: transparent;
-  color: #fff; transform: scale(1.02);
-  box-shadow: 0 4px 14px rgba(255, 77, 141, 0.35);
-}
-.round-box:nth-child(3):has(input:checked) {
-  background: var(--grad-accent); border-color: transparent;
-  color: #fff; transform: scale(1.02);
-  box-shadow: 0 4px 14px rgba(124, 92, 255, 0.35);
-}
-.round-box:nth-child(4):has(input:checked) {
-  background: var(--grad-success); border-color: transparent;
-  color: #fff; transform: scale(1.02);
-  box-shadow: 0 4px 14px rgba(31, 201, 122, 0.35);
-}
-
-.round-status {
-  margin-top: 14px;
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* ---------- Buttons ---------- */
@@ -447,7 +441,7 @@ html, body {
 }
 .btn-danger:active { background: rgba(255, 59, 92, 0.08); }
 
-/* ---------- Info button in guided exercise screen ---------- */
+/* ---------- Info button ---------- */
 .info-btn {
   background: rgba(124, 92, 255, 0.1);
   color: var(--purple);
@@ -484,8 +478,6 @@ html, body {
   border: 2px solid var(--yellow);
   box-shadow: 0 8px 24px rgba(255, 201, 60, 0.2);
 }
-
-.hidden { display: none !important; }
 
 .summary-date {
   font-size: 1.15rem;
@@ -561,7 +553,7 @@ html, body {
   line-height: 1.5;
 }
 
-/* ---------- Per-exercise timing breakdown in summary ---------- */
+/* ---------- Per-exercise breakdown ---------- */
 .exercise-breakdown {
   background: #fff;
   border: 1px solid var(--border);
@@ -582,7 +574,6 @@ html, body {
 
 .exercise-breakdown-rounds {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 6px;
 }
@@ -705,7 +696,7 @@ html, body {
 }
 
 /* ==========================================================
-   GUIDED MODE STYLES
+   GUIDED / COACHED SCREEN STYLES
    ========================================================== */
 
 .guided-card {
@@ -738,7 +729,7 @@ html, body {
   border: 2px solid var(--border);
   border-radius: 12px;
   padding: 14px 18px;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .plan-preview-row {
@@ -868,7 +859,7 @@ html, body {
 }
 
 /* ==========================================================
-   INFO MODAL (exercise muscle info)
+   INFO MODAL
    ========================================================== */
 
 .modal-backdrop {

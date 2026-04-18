@@ -19,127 +19,24 @@
       <p class="subtitle">Track your daily workout, rounds, walk, and notes</p>
     </header>
 
-    <!-- MODE TOGGLE -->
-    <div class="mode-toggle">
-      <button class="mode-btn active" data-mode="quick">Quick Log</button>
-      <button class="mode-btn" data-mode="guided">Guided Workout</button>
-    </div>
-
     <!-- ============================================
-         QUICK LOG MODE
+         LANDING: Pick a wizard
          ============================================ -->
-    <main id="quickMode">
+    <main id="landingView">
 
-      <section class="card">
-        <label for="workoutDate" class="label">📅 Date</label>
-        <input type="date" id="workoutDate" class="date-input" />
-      </section>
+      <div class="wizard-picker">
+        <button class="wizard-card" data-wizard="custom">
+          <div class="wizard-card-icon">🎯</div>
+          <div class="wizard-card-title">Pick Your Workout</div>
+          <div class="wizard-card-sub">Choose exercises, rounds &amp; reps</div>
+        </button>
 
-      <section class="card plan-card">
-        <h2 class="card-title">🎯 Today's Plan</h2>
-        <ul class="plan-list">
-          <li><span>Rounds</span><strong>4</strong></li>
-          <li><span>Push-ups</span><strong>12 reps</strong></li>
-          <li><span>Sit-ups</span><strong>15 reps</strong></li>
-          <li><span>Squats</span><strong>15 reps</strong></li>
-          <li><span>Plank</span><strong>20 sec</strong></li>
-          <li><span>Walk</span><strong>3 miles</strong></li>
-        </ul>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">🔥 Exercises</h2>
-        <div class="check-list">
-          <label class="check-row">
-            <input type="checkbox" id="pushups" />
-            <span class="check-label">Push-ups</span>
-          </label>
-          <label class="check-row">
-            <input type="checkbox" id="situps" />
-            <span class="check-label">Sit-ups</span>
-          </label>
-          <label class="check-row">
-            <input type="checkbox" id="squats" />
-            <span class="check-label">Squats</span>
-          </label>
-          <label class="check-row">
-            <input type="checkbox" id="plank" />
-            <span class="check-label">Plank</span>
-          </label>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">⚡ Rounds Completed</h2>
-        <div class="round-grid">
-          <label class="round-box">
-            <input type="checkbox" class="round-check" data-round="1" />
-            <span>Round 1</span>
-          </label>
-          <label class="round-box">
-            <input type="checkbox" class="round-check" data-round="2" />
-            <span>Round 2</span>
-          </label>
-          <label class="round-box">
-            <input type="checkbox" class="round-check" data-round="3" />
-            <span>Round 3</span>
-          </label>
-          <label class="round-box">
-            <input type="checkbox" class="round-check" data-round="4" />
-            <span>Round 4</span>
-          </label>
-        </div>
-        <p class="round-status" id="roundStatus">0 of 4 rounds complete</p>
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">🚶 Walk</h2>
-        <p class="goal-text">Goal: 3 miles</p>
-        <label class="check-row">
-          <input type="checkbox" id="walk" />
-          <span class="check-label">Walk completed</span>
-        </label>
-        <label for="miles" class="label label-inline">Miles walked (optional)</label>
-        <input type="number" id="miles" class="text-input" min="0" step="0.1" placeholder="e.g. 3.0" />
-      </section>
-
-      <section class="card">
-        <h2 class="card-title">📝 Notes</h2>
-        <textarea id="notes" class="notes-input" rows="4" placeholder="Energy, soreness, knees, anything learned..."></textarea>
-
-        <div class="metrics-row">
-          <div class="metric-field">
-            <label for="duration" class="label label-inline">⏱️ Duration (min)</label>
-            <input type="number" id="duration" class="text-input" min="0" step="1" placeholder="e.g. 25" />
-          </div>
-          <div class="metric-field">
-            <label for="calories" class="label label-inline">🔥 Calories</label>
-            <input type="number" id="calories" class="text-input" min="0" step="1" placeholder="e.g. 180" />
-          </div>
-        </div>
-
-        <label class="label label-inline">💥 Effort (1-10, optional)</label>
-        <div class="rpe-scale" id="quickRpeScale">
-          <button type="button" class="rpe-btn" data-rpe="1">1</button>
-          <button type="button" class="rpe-btn" data-rpe="2">2</button>
-          <button type="button" class="rpe-btn" data-rpe="3">3</button>
-          <button type="button" class="rpe-btn" data-rpe="4">4</button>
-          <button type="button" class="rpe-btn" data-rpe="5">5</button>
-          <button type="button" class="rpe-btn" data-rpe="6">6</button>
-          <button type="button" class="rpe-btn" data-rpe="7">7</button>
-          <button type="button" class="rpe-btn" data-rpe="8">8</button>
-          <button type="button" class="rpe-btn" data-rpe="9">9</button>
-          <button type="button" class="rpe-btn" data-rpe="10">10</button>
-        </div>
-      </section>
-
-      <button id="saveBtn" class="btn btn-primary">Save Workout</button>
-      <button id="resetFormBtn" class="btn btn-ghost">Reset Today's Form</button>
-
-      <section class="card summary-card hidden" id="summarySection">
-        <h2 class="card-title">🏆 Workout Summary</h2>
-        <div id="summaryContent"></div>
-      </section>
+        <button class="wizard-card wizard-card-accent" data-wizard="guided">
+          <div class="wizard-card-icon">💪</div>
+          <div class="wizard-card-title">Guided Workout</div>
+          <div class="wizard-card-sub">Beginner plan, coached round-by-round</div>
+        </button>
+      </div>
 
       <section class="card">
         <h2 class="card-title">📊 History</h2>
@@ -155,9 +52,167 @@
     </main>
 
     <!-- ============================================
-         GUIDED WORKOUT MODE
+         WIZARD 1: Pick Your Workout (custom)
          ============================================ -->
-    <main id="guidedMode" class="hidden">
+    <main id="customView" class="hidden">
+
+      <button class="back-btn" data-back="landing">&larr; Back</button>
+
+      <!-- STEP 1: Plan -->
+      <section class="card wizard-step" id="customStepPlan">
+        <h2 class="card-title">🎯 Plan Your Workout</h2>
+
+        <label for="customDate" class="label">📅 Date</label>
+        <input type="date" id="customDate" class="date-input" />
+
+        <label class="label label-inline">⚡ Rounds</label>
+        <div class="stepper" id="customRoundsStepper">
+          <button type="button" class="stepper-btn" data-action="dec">−</button>
+          <div class="stepper-value" id="customRoundsValue">4</div>
+          <button type="button" class="stepper-btn" data-action="inc">+</button>
+        </div>
+
+        <label class="label label-inline">🔥 Exercises</label>
+        <div class="custom-exercise-list">
+          <div class="custom-exercise-row">
+            <label class="check-row compact">
+              <input type="checkbox" class="ex-enable" data-ex="pushups" checked />
+              <span class="check-label">Push-ups</span>
+            </label>
+            <div class="reps-input-wrap">
+              <input type="number" class="text-input reps-input" data-ex="pushups" min="1" value="12" />
+              <span class="reps-unit">reps</span>
+            </div>
+          </div>
+          <div class="custom-exercise-row">
+            <label class="check-row compact">
+              <input type="checkbox" class="ex-enable" data-ex="situps" checked />
+              <span class="check-label">Sit-ups</span>
+            </label>
+            <div class="reps-input-wrap">
+              <input type="number" class="text-input reps-input" data-ex="situps" min="1" value="15" />
+              <span class="reps-unit">reps</span>
+            </div>
+          </div>
+          <div class="custom-exercise-row">
+            <label class="check-row compact">
+              <input type="checkbox" class="ex-enable" data-ex="squats" checked />
+              <span class="check-label">Squats</span>
+            </label>
+            <div class="reps-input-wrap">
+              <input type="number" class="text-input reps-input" data-ex="squats" min="1" value="15" />
+              <span class="reps-unit">reps</span>
+            </div>
+          </div>
+          <div class="custom-exercise-row">
+            <label class="check-row compact">
+              <input type="checkbox" class="ex-enable" data-ex="plank" checked />
+              <span class="check-label">Plank</span>
+            </label>
+            <div class="reps-input-wrap">
+              <input type="number" class="text-input reps-input" data-ex="plank" min="1" value="20" />
+              <span class="reps-unit">sec</span>
+            </div>
+          </div>
+        </div>
+
+        <label class="label label-inline">🚶 Walk</label>
+        <div class="custom-exercise-row">
+          <label class="check-row compact">
+            <input type="checkbox" id="customWalkEnable" />
+            <span class="check-label">Include walk</span>
+          </label>
+          <div class="reps-input-wrap">
+            <input type="number" class="text-input reps-input" id="customWalkMiles" min="0" step="0.1" value="3.0" />
+            <span class="reps-unit">mi</span>
+          </div>
+        </div>
+
+        <button id="customStartBtn" class="btn btn-primary btn-xl" style="margin-top:18px;">Start Workout</button>
+      </section>
+
+      <!-- STEP 2: Coached workout (reuses the guided exercise screens with custom plan) -->
+      <section class="card guided-card hidden" id="customRoundIntro">
+        <p class="round-label" id="customRoundLabel">Round 1 of 4</p>
+        <div class="round-number" id="customRoundNumber">1</div>
+        <p class="guided-sub">Tap below when you're ready.</p>
+        <button id="customBeginRoundBtn" class="btn btn-primary btn-xl">Begin Round</button>
+      </section>
+
+      <section class="card guided-card hidden" id="customExercise">
+        <p class="round-label" id="customExerciseRoundLabel">Round 1 of 4</p>
+        <div class="exercise-icon" id="customExerciseIcon">🔥</div>
+        <h2 class="exercise-name" id="customExerciseName">Push-ups</h2>
+        <div class="exercise-target" id="customExerciseTarget">12 reps</div>
+
+        <button id="customExerciseInfoBtn" class="info-btn" type="button">ⓘ Muscles &amp; Info</button>
+
+        <div class="exercise-timer" id="customExerciseLiveTimer">0:00</div>
+
+        <div class="timer-section hidden" id="customTimerSection">
+          <div class="timer-display" id="customTimerDisplay">20</div>
+          <div class="timer-label">seconds</div>
+          <button id="customTimerStartBtn" class="btn btn-accent">Start Timer</button>
+        </div>
+
+        <button id="customExerciseDoneBtn" class="btn btn-primary btn-xl">Done</button>
+        <button id="customExerciseBackBtn" class="btn btn-ghost">Back</button>
+      </section>
+
+      <section class="card guided-card hidden" id="customRest">
+        <div class="check-mark">✓</div>
+        <h2 class="guided-title" id="customRestTitle">Round 1 Complete</h2>
+        <p class="guided-sub">Rest up. Next round when you're ready.</p>
+        <div class="rest-timer" id="customRestTimer">0:00</div>
+        <button id="customNextRoundBtn" class="btn btn-primary btn-xl">Next Round</button>
+      </section>
+
+      <section class="card guided-card hidden" id="customWalk">
+        <div class="exercise-icon">🚶</div>
+        <h2 class="exercise-name">Walk</h2>
+        <div class="exercise-target" id="customWalkTarget">Goal: 3 miles</div>
+        <p class="guided-sub">Log your walk when you're back.</p>
+        <label for="customWalkActual" class="label label-inline">Miles walked</label>
+        <input type="number" id="customWalkActual" class="text-input" min="0" step="0.1" placeholder="e.g. 3.0" />
+        <button id="customWalkDoneBtn" class="btn btn-primary btn-xl">Walk Complete</button>
+        <button id="customWalkSkipBtn" class="btn btn-ghost">Skip Walk</button>
+      </section>
+
+      <!-- STEP 3: Log & Save -->
+      <section class="card guided-card hidden" id="customFinish">
+        <div class="check-mark big">🏆</div>
+        <h2 class="guided-title">Workout Complete</h2>
+        <p class="guided-sub">Add notes &amp; metrics, then save.</p>
+        <textarea id="customNotes" class="notes-input" rows="4" placeholder="Energy, soreness, knees, anything learned..."></textarea>
+
+        <div class="metrics-row">
+          <div class="metric-field">
+            <label for="customDuration" class="label label-inline">⏱️ Duration (min)</label>
+            <input type="number" id="customDuration" class="text-input" min="0" step="1" placeholder="e.g. 25" />
+          </div>
+          <div class="metric-field">
+            <label for="customCalories" class="label label-inline">🔥 Calories</label>
+            <input type="number" id="customCalories" class="text-input" min="0" step="1" placeholder="e.g. 180" />
+          </div>
+        </div>
+
+        <button id="customSaveBtn" class="btn btn-primary btn-xl">Save Workout</button>
+      </section>
+
+      <section class="card summary-card hidden" id="customSummary">
+        <h2 class="card-title">🏆 Workout Summary</h2>
+        <div id="customSummaryContent"></div>
+        <button class="btn btn-ghost" data-back="landing" style="margin-top:14px;">Back to Home</button>
+      </section>
+
+    </main>
+
+    <!-- ============================================
+         WIZARD 2: Guided Workout (fixed beginner plan)
+         ============================================ -->
+    <main id="guidedView" class="hidden">
+
+      <button class="back-btn" data-back="landing">&larr; Back</button>
 
       <section class="card guided-card" id="guidedStart">
         <h2 class="guided-title">Ready to Train?</h2>
@@ -168,7 +223,11 @@
           <div class="plan-preview-row"><span>Squats</span><strong>15</strong></div>
           <div class="plan-preview-row"><span>Plank</span><strong>20 sec</strong></div>
         </div>
-        <button id="startWorkoutBtn" class="btn btn-primary btn-xl">Start Workout</button>
+
+        <label for="guidedDate" class="label label-inline">📅 Date</label>
+        <input type="date" id="guidedDate" class="date-input" />
+
+        <button id="startWorkoutBtn" class="btn btn-primary btn-xl" style="margin-top:14px;">Start Workout</button>
       </section>
 
       <section class="card guided-card hidden" id="guidedRoundIntro">
@@ -184,13 +243,10 @@
         <h2 class="exercise-name" id="exerciseName">Push-ups</h2>
         <div class="exercise-target" id="exerciseTarget">12 reps</div>
 
-        <!-- Info button -->
         <button id="exerciseInfoBtn" class="info-btn" type="button">ⓘ Muscles &amp; Info</button>
 
-        <!-- Active exercise timer (counts up) -->
         <div class="exercise-timer" id="exerciseLiveTimer">0:00</div>
 
-        <!-- Plank countdown timer (only shown for plank) -->
         <div class="timer-section hidden" id="timerSection">
           <div class="timer-display" id="timerDisplay">20</div>
           <div class="timer-label">seconds</div>
@@ -223,7 +279,7 @@
       <section class="card guided-card hidden" id="guidedFinish">
         <div class="check-mark big">🏆</div>
         <h2 class="guided-title">Workout Complete</h2>
-        <p class="guided-sub">Add notes, rate your effort, then save.</p>
+        <p class="guided-sub">Add notes &amp; metrics, then save.</p>
         <textarea id="guidedNotes" class="notes-input" rows="4" placeholder="Energy, soreness, knees, anything learned..."></textarea>
 
         <div class="metrics-row">
@@ -237,27 +293,13 @@
           </div>
         </div>
 
-        <label class="label label-inline">💥 How hard was that? (1-10)</label>
-        <div class="rpe-scale" id="guidedRpeScale">
-          <button type="button" class="rpe-btn" data-rpe="1">1</button>
-          <button type="button" class="rpe-btn" data-rpe="2">2</button>
-          <button type="button" class="rpe-btn" data-rpe="3">3</button>
-          <button type="button" class="rpe-btn" data-rpe="4">4</button>
-          <button type="button" class="rpe-btn" data-rpe="5">5</button>
-          <button type="button" class="rpe-btn" data-rpe="6">6</button>
-          <button type="button" class="rpe-btn" data-rpe="7">7</button>
-          <button type="button" class="rpe-btn" data-rpe="8">8</button>
-          <button type="button" class="rpe-btn" data-rpe="9">9</button>
-          <button type="button" class="rpe-btn" data-rpe="10">10</button>
-        </div>
-
         <button id="guidedSaveBtn" class="btn btn-primary btn-xl">Save Workout</button>
       </section>
 
       <section class="card summary-card hidden" id="guidedSummary">
         <h2 class="card-title">🏆 Workout Summary</h2>
         <div id="guidedSummaryContent"></div>
-        <button id="guidedNewBtn" class="btn btn-ghost" style="margin-top: 14px;">Start Another Workout</button>
+        <button class="btn btn-ghost" data-back="landing" style="margin-top:14px;">Back to Home</button>
       </section>
 
     </main>
