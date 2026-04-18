@@ -1,5 +1,5 @@
 /* ==========================================================
-   GymUp v3.4 — Bright & Colorful Theme
+   GymUp v3.5 — Clean Dark Mode (Light theme preserved)
    ========================================================== */
 
 * {
@@ -9,39 +9,72 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-:root {
-  --bg-start: #fff4e6;
-  --bg-end:   #ffe8f0;
-  --surface:  #ffffff;
-  --surface-2: #fff8f3;
-  --border:   #ffd9c2;
-  --text:     #1a1a2e;
-  --text-dim: #6b6b85;
+/* ---------- Dark theme (default) ---------- */
+:root,
+:root[data-theme="dark"] {
+  --bg:           #0f172a;
+  --surface:      #1e293b;
+  --surface-2:    #334155;
+  --border:       #475569;
+  --border-soft:  #334155;
 
-  --orange:   #ff6b35;
-  --orange-dark: #e8541f;
-  --pink:     #ff4d8d;
-  --blue:     #3d9dff;
-  --green:    #1fc97a;
-  --yellow:   #ffc93c;
-  --purple:   #7c5cff;
-  --danger:   #ff3b5c;
+  --text:         #f8fafc;
+  --text-dim:     #94a3b8;
 
-  --grad-primary: linear-gradient(135deg, #ff6b35 0%, #ff4d8d 100%);
-  --grad-accent:  linear-gradient(135deg, #7c5cff 0%, #3d9dff 100%);
-  --grad-success: linear-gradient(135deg, #1fc97a 0%, #3dd4a0 100%);
-  --grad-warm:    linear-gradient(135deg, #ffc93c 0%, #ff6b35 100%);
+  --primary:      #f97316;
+  --primary-hi:   #fb923c;
+  --primary-dim:  rgba(249, 115, 22, 0.12);
+  --success:      #22c55e;
+  --success-dim:  rgba(34, 197, 94, 0.14);
+  --info:         #3b82f6;
+  --info-dim:     rgba(59, 130, 246, 0.14);
+  --danger:       #ef4444;
+  --danger-dim:   rgba(239, 68, 68, 0.12);
+  --warn:         #f59e0b;
+  --warn-dim:     rgba(245, 158, 11, 0.12);
+
+  --shadow-sm:    0 1px 2px rgba(0, 0, 0, 0.25);
+  --shadow-md:    0 4px 12px rgba(0, 0, 0, 0.30);
+  --shadow-lg:    0 10px 28px rgba(0, 0, 0, 0.40);
+}
+
+/* ---------- Light theme (original warm palette preserved) ---------- */
+:root[data-theme="light"] {
+  --bg:           #fff4e6;
+  --surface:      #ffffff;
+  --surface-2:    #fff8f3;
+  --border:       #ffd9c2;
+  --border-soft:  #ffe6d4;
+
+  --text:         #1a1a2e;
+  --text-dim:     #6b6b85;
+
+  --primary:      #ff6b35;
+  --primary-hi:   #ff8555;
+  --primary-dim:  rgba(255, 107, 53, 0.12);
+  --success:      #1fc97a;
+  --success-dim:  rgba(31, 201, 122, 0.14);
+  --info:         #3b82f6;
+  --info-dim:     rgba(59, 130, 246, 0.14);
+  --danger:       #ef4444;
+  --danger-dim:   rgba(239, 68, 68, 0.10);
+  --warn:         #f59e0b;
+  --warn-dim:     rgba(245, 158, 11, 0.12);
+
+  --shadow-sm:    0 1px 2px rgba(255, 107, 53, 0.06);
+  --shadow-md:    0 4px 14px rgba(255, 107, 53, 0.10);
+  --shadow-lg:    0 10px 28px rgba(255, 107, 53, 0.14);
 }
 
 html, body {
-  background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-end) 100%);
-  background-attachment: fixed;
+  background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   font-size: 16px;
-  line-height: 1.4;
+  line-height: 1.45;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease;
 }
 
 .app {
@@ -52,49 +85,66 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* ---------- Floating Home button ---------- */
-.home-btn {
+/* ==========================================================
+   FLOATING BUTTONS (home + theme toggle)
+   ========================================================== */
+
+.home-btn,
+.theme-btn {
   position: fixed;
   top: 14px;
-  right: 14px;
   z-index: 900;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: none;
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-  font-size: 1.4rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+  font-size: 1.25rem;
   cursor: pointer;
   font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s, background 0.15s;
 }
 
-.home-btn:active {
+.home-btn { right: 14px; }
+.theme-btn { left: 14px; }
+
+.home-btn:active,
+.theme-btn:active {
   transform: scale(0.92);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: var(--surface-2);
 }
 
-.home-btn span { line-height: 1; }
+.home-btn span,
+.theme-btn span { line-height: 1; }
 
 @supports (padding: env(safe-area-inset-top)) {
   .home-btn {
     top: calc(14px + env(safe-area-inset-top));
     right: calc(14px + env(safe-area-inset-right));
   }
+  .theme-btn {
+    top: calc(14px + env(safe-area-inset-top));
+    left: calc(14px + env(safe-area-inset-left));
+  }
 }
 
-/* ---------- Header ---------- */
+/* ==========================================================
+   HEADER
+   ========================================================== */
+
 .header {
-  background: var(--grad-primary);
-  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
   padding: 22px 20px;
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(255, 107, 53, 0.25);
-  color: #fff;
+  box-shadow: var(--shadow-md);
+  color: var(--text);
   text-align: center;
 }
 
@@ -106,22 +156,29 @@ html, body {
   margin-bottom: 4px;
 }
 
-.logo-mark { font-size: 1.8rem; }
+.logo-mark {
+  font-size: 1.6rem;
+  filter: grayscale(0);
+}
 
 .header h1 {
-  font-size: 1.9rem;
+  font-size: 1.6rem;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  color: var(--text);
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 0.88rem;
+  color: var(--text-dim);
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
-/* ---------- Wizard picker ---------- */
+/* ==========================================================
+   WIZARD PICKER (landing)
+   ========================================================== */
+
 .wizard-picker {
   display: flex;
   flex-direction: column;
@@ -130,88 +187,94 @@ html, body {
 }
 
 .wizard-card {
+  position: relative;
   display: block;
   width: 100%;
   text-align: left;
-  padding: 22px 20px;
-  border: none;
-  border-radius: 16px;
-  background: var(--grad-primary);
-  color: #fff;
+  padding: 22px 20px 22px 24px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--primary);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   font-family: inherit;
-  box-shadow: 0 8px 22px rgba(255, 107, 53, 0.28);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
 }
 
 .wizard-card:active {
-  transform: translateY(2px);
-  box-shadow: 0 3px 12px rgba(255, 107, 53, 0.28);
+  transform: translateY(1px);
+  background: var(--surface-2);
 }
 
 .wizard-card-accent {
-  background: var(--grad-accent);
-  box-shadow: 0 8px 22px rgba(124, 92, 255, 0.28);
-}
-
-.wizard-card-accent:active {
-  box-shadow: 0 3px 12px rgba(124, 92, 255, 0.28);
+  border-left-color: var(--info);
 }
 
 .wizard-card-icon {
-  font-size: 2.2rem;
+  font-size: 2rem;
   margin-bottom: 6px;
 }
 
 .wizard-card-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
+  color: var(--text);
 }
 
 .wizard-card-sub {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--text-dim);
 }
 
-/* ---------- Cards ---------- */
+/* ==========================================================
+   CARDS
+   ========================================================== */
+
 .card {
   background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
   padding: 18px;
   margin-bottom: 14px;
-  box-shadow: 0 4px 14px rgba(255, 107, 53, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-title {
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--text);
+  letter-spacing: 1.2px;
+  color: var(--text-dim);
   margin-bottom: 14px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* ---------- Labels / Inputs ---------- */
+/* ==========================================================
+   LABELS / INPUTS
+   ========================================================== */
+
 .label {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--text-dim);
   margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 
 .label-inline { margin-top: 14px; }
 
 .hint-text {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-dim);
   margin-top: -4px;
   margin-bottom: 10px;
@@ -219,7 +282,7 @@ html, body {
 }
 
 .hint-text strong {
-  color: var(--orange);
+  color: var(--primary);
   font-weight: 800;
 }
 
@@ -227,11 +290,11 @@ html, body {
 .text-input,
 .notes-input {
   width: 100%;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--border);
   color: var(--text);
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
@@ -241,8 +304,8 @@ html, body {
 .text-input:focus,
 .notes-input:focus {
   outline: none;
-  border-color: var(--orange);
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-dim);
 }
 
 .notes-input {
@@ -250,7 +313,18 @@ html, body {
   min-height: 90px;
 }
 
-/* ---------- Metrics row ---------- */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+:root[data-theme="light"] .date-input::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.6;
+}
+
+/* Metrics row */
 .metrics-row {
   display: flex;
   gap: 10px;
@@ -265,46 +339,50 @@ html, body {
   margin-bottom: 6px;
 }
 
-/* ---------- Rounds stepper (big, used for rounds) ---------- */
+/* ==========================================================
+   STEPPERS
+   ========================================================== */
+
 .stepper {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   padding: 10px;
 }
 
 .stepper-btn {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
   border: none;
-  background: var(--grad-primary);
+  background: var(--primary);
   color: #fff;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 800;
   cursor: pointer;
   font-family: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
-  transition: transform 0.1s, opacity 0.15s;
+  transition: background 0.15s, transform 0.1s;
 }
 
-.stepper-btn:active { transform: translateY(2px); }
+.stepper-btn:active {
+  transform: translateY(1px);
+  background: var(--primary-hi);
+}
 
 .stepper-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 .stepper-value {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 900;
   min-width: 60px;
   text-align: center;
@@ -312,16 +390,17 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Smaller stepper used inline for reps ---------- */
 .stepper-btn-sm {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
-  font-size: 1.3rem;
-  box-shadow: 0 3px 8px rgba(255, 107, 53, 0.3);
+  border-radius: 8px;
+  font-size: 1.2rem;
 }
 
-/* ---------- New custom exercise row (v3.4) ---------- */
+/* ==========================================================
+   CUSTOM EXERCISE ROWS
+   ========================================================== */
+
 .custom-exercise-list {
   display: flex;
   flex-direction: column;
@@ -333,15 +412,16 @@ html, body {
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--border);
+  border-radius: 10px;
   transition: border-color 0.2s, background 0.2s;
 }
 
 .custom-exercise-row-v2:has(.ex-enable:checked) {
-  border-color: var(--orange);
-  background: #fff;
+  border-left-color: var(--primary);
+  background: var(--surface-2);
 }
 
 .custom-exercise-row-v2 .ex-toggle {
@@ -360,25 +440,23 @@ html, body {
 .ex-icon {
   display: inline-block;
   margin-right: 8px;
-  font-size: 1.15rem;
+  font-size: 1.1rem;
 }
 
-/* The reps stepper (inline, tappable) */
 .reps-stepper {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: #fff;
-  border: 2px solid var(--orange);
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
   padding: 6px 8px;
 }
 
 .custom-exercise-row-v2:not(:has(.ex-enable:checked)) .reps-stepper {
   opacity: 0.4;
   pointer-events: none;
-  border-color: var(--border);
 }
 
 .reps-display {
@@ -389,7 +467,7 @@ html, body {
 
 .reps-value {
   display: block;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: var(--text);
   line-height: 1;
@@ -398,7 +476,7 @@ html, body {
 
 .reps-unit-label {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-dim);
   text-transform: uppercase;
@@ -406,7 +484,10 @@ html, body {
   margin-top: 2px;
 }
 
-/* ---------- Check rows ---------- */
+/* ==========================================================
+   CHECK ROWS
+   ========================================================== */
+
 .check-list {
   display: flex;
   flex-direction: column;
@@ -418,9 +499,9 @@ html, body {
   align-items: center;
   gap: 14px;
   padding: 14px;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
   min-height: 54px;
@@ -431,37 +512,37 @@ html, body {
 .check-row input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
-  width: 26px;
-  height: 26px;
-  border: 2.5px solid #d4b8a8;
-  border-radius: 7px;
-  background: #fff;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
   cursor: pointer;
   flex-shrink: 0;
   position: relative;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .check-row input[type="checkbox"]:checked {
-  background: var(--grad-success);
-  border-color: transparent;
+  background: var(--success);
+  border-color: var(--success);
 }
 
 .check-row input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
-  left: 8px;
-  top: 3px;
+  left: 7px;
+  top: 2px;
   width: 6px;
   height: 12px;
   border: solid #fff;
-  border-width: 0 3px 3px 0;
+  border-width: 0 2.5px 2.5px 0;
   transform: rotate(45deg);
 }
 
 .check-row:has(input:checked) {
-  background: linear-gradient(135deg, #e8faf0 0%, #d4f5e0 100%);
-  border-color: var(--green);
+  background: var(--success-dim);
+  border-color: var(--success);
 }
 
 .check-label {
@@ -469,106 +550,179 @@ html, body {
   font-weight: 600;
   display: flex;
   align-items: center;
+  color: var(--text);
 }
 
-/* ---------- Buttons ---------- */
+.goal-text {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+/* ==========================================================
+   ROUND GRID (Quick Log mode)
+   ========================================================== */
+
+.round-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.round-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-height: 54px;
+  text-align: center;
+  transition: all 0.15s;
+  color: var(--text);
+}
+
+.round-box input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.round-box:has(input:checked) {
+  background: var(--success-dim);
+  border-color: var(--success);
+  color: var(--text);
+}
+
+.round-status {
+  margin-top: 14px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+/* ==========================================================
+   BUTTONS
+   ========================================================== */
+
 .btn {
   display: block;
   width: 100%;
   padding: 16px;
   border: none;
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
   font-family: inherit;
   margin-bottom: 10px;
-  transition: all 0.2s;
+  transition: background 0.15s, transform 0.1s, border-color 0.15s;
   min-height: 54px;
 }
 
 .btn-xl {
   padding: 20px;
-  font-size: 1.1rem;
-  min-height: 62px;
+  font-size: 1rem;
+  min-height: 60px;
 }
 
 .btn-primary {
-  background: var(--grad-primary);
+  background: var(--primary);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(255, 107, 53, 0.35);
 }
 .btn-primary:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.35);
+  background: var(--primary-hi);
+  transform: translateY(1px);
 }
 
 .btn-accent {
-  background: var(--grad-accent);
+  background: var(--info);
   color: #fff;
-  box-shadow: 0 6px 18px rgba(124, 92, 255, 0.35);
 }
 .btn-accent:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 8px rgba(124, 92, 255, 0.35);
+  transform: translateY(1px);
+  filter: brightness(1.1);
 }
 
 .btn-ghost {
-  background: #fff;
+  background: transparent;
   color: var(--text);
-  border: 2px solid var(--border);
+  border: 1px solid var(--border);
 }
-.btn-ghost:active { background: var(--surface-2); }
+.btn-ghost:active {
+  background: var(--surface-2);
+  border-color: var(--text-dim);
+}
 
 .btn-danger {
-  background: #fff;
+  background: transparent;
   color: var(--danger);
-  border: 2px solid var(--danger);
+  border: 1px solid var(--danger);
 }
-.btn-danger:active { background: rgba(255, 59, 92, 0.08); }
+.btn-danger:active {
+  background: var(--danger-dim);
+}
 
-/* ---------- Info button ---------- */
+/* ==========================================================
+   INFO BUTTON (muscles & info)
+   ========================================================== */
+
 .info-btn {
-  background: rgba(124, 92, 255, 0.1);
-  color: var(--purple);
-  border: 2px solid var(--purple);
+  background: var(--info-dim);
+  color: var(--info);
+  border: 1px solid var(--info);
   padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  border-radius: 18px;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
   margin: 0 auto 14px;
   display: inline-block;
   align-self: center;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 .info-btn:active {
   transform: scale(0.97);
-  background: rgba(124, 92, 255, 0.18);
+  background: var(--info);
+  color: #fff;
 }
 
-/* ---------- Live exercise timer ---------- */
+/* ==========================================================
+   LIVE EXERCISE TIMER
+   ========================================================== */
+
 .exercise-timer {
-  font-size: 2.2rem;
+  font-size: 2rem;
   font-weight: 800;
-  color: var(--orange);
+  color: var(--primary);
   margin-bottom: 18px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
 }
 
-/* ---------- Summary ---------- */
+/* ==========================================================
+   SUMMARY
+   ========================================================== */
+
 .summary-card {
-  background: linear-gradient(135deg, #fff8e6 0%, #fff0f5 100%);
-  border: 2px solid var(--yellow);
-  box-shadow: 0 8px 24px rgba(255, 201, 60, 0.2);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-top: 3px solid var(--success);
+  box-shadow: var(--shadow-md);
 }
 
 .summary-date {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin-bottom: 14px;
   color: var(--text);
@@ -577,21 +731,25 @@ html, body {
 
 .summary-headline {
   padding: 14px;
-  border-radius: 10px;
+  border-radius: 8px;
   margin-bottom: 14px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   text-align: center;
   font-weight: 700;
   color: #fff;
 }
 
 .summary-headline.complete {
-  background: var(--grad-success);
-  box-shadow: 0 4px 14px rgba(31, 201, 122, 0.3);
+  background: var(--success);
 }
+
 .summary-headline.partial {
-  background: var(--grad-warm);
-  box-shadow: 0 4px 14px rgba(255, 201, 60, 0.3);
+  background: var(--warn);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .summary-headline.partial {
+  color: #fff;
 }
 
 .summary-row {
@@ -599,8 +757,8 @@ html, body {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(255, 217, 194, 0.5);
-  font-size: 0.98rem;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.95rem;
 }
 .summary-row:last-child { border-bottom: none; }
 
@@ -611,40 +769,41 @@ html, body {
 
 .summary-row .value {
   font-weight: 700;
-  padding: 3px 12px;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  padding: 3px 11px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .summary-row .value.yes {
   color: #fff;
-  background: var(--grad-success);
+  background: var(--success);
 }
 .summary-row .value.no {
   color: var(--text-dim);
-  background: var(--border);
-}
-.summary-row .value:not(.yes):not(.no) {
-  background: var(--grad-accent);
-  color: #fff;
+  background: var(--surface-2);
 }
 
 .summary-notes {
   margin-top: 14px;
   padding: 14px;
-  background: #fff;
-  border-left: 4px solid var(--purple);
-  border-radius: 8px;
-  font-size: 0.95rem;
+  background: var(--bg);
+  border-left: 3px solid var(--info);
+  border-radius: 6px;
+  font-size: 0.92rem;
   color: var(--text);
   white-space: pre-wrap;
   line-height: 1.5;
 }
 
-/* ---------- Per-exercise breakdown ---------- */
+/* ==========================================================
+   PER-EXERCISE BREAKDOWN
+   ========================================================== */
+
 .exercise-breakdown {
-  background: #fff;
-  border: 1px solid var(--border);
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   padding: 10px 12px;
   margin: 6px 0;
@@ -658,6 +817,9 @@ html, body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.6px;
 }
 
 .exercise-breakdown-rounds {
@@ -668,31 +830,34 @@ html, body {
 
 .round-time-chip {
   background: var(--surface-2);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   padding: 6px 4px;
   text-align: center;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-dim);
 }
 
 .round-time-chip strong {
   display: block;
-  color: var(--orange);
+  color: var(--primary);
   font-size: 0.9rem;
   font-weight: 800;
   margin-top: 2px;
 }
 
 .exercise-breakdown-totals {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-dim);
   font-weight: 600;
   text-align: right;
 }
 
-/* ---------- History ---------- */
+/* ==========================================================
+   HISTORY
+   ========================================================== */
+
 .history-list {
   display: flex;
   flex-direction: column;
@@ -701,31 +866,29 @@ html, body {
 
 .history-item {
   position: relative;
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-left: 5px solid var(--orange);
-  border-radius: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--primary);
+  border-radius: 8px;
   padding: 13px 14px;
-  padding-right: 48px;
+  padding-right: 44px;
   transition: transform 0.15s;
 }
 
-.history-item:nth-child(4n+1) { border-left-color: var(--orange); }
-.history-item:nth-child(4n+2) { border-left-color: var(--pink); }
-.history-item:nth-child(4n+3) { border-left-color: var(--purple); }
-.history-item:nth-child(4n)   { border-left-color: var(--green); }
+/* All history items use the same left-accent color — disciplined, not rainbow */
+.history-item { border-left-color: var(--primary); }
 
 .history-item:active { transform: scale(0.99); }
 
 .history-date {
   font-weight: 800;
-  font-size: 1rem;
+  font-size: 0.98rem;
   margin-bottom: 4px;
   color: var(--text);
 }
 
 .history-meta {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--text-dim);
   line-height: 1.5;
   font-weight: 500;
@@ -733,14 +896,14 @@ html, body {
 
 .history-note {
   margin-top: 6px;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--text-dim);
   font-style: italic;
 }
 
 .empty-text {
   color: var(--text-dim);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   text-align: center;
   padding: 16px 0;
   font-weight: 500;
@@ -748,29 +911,33 @@ html, body {
 
 .status-tag {
   display: inline-block;
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 800;
-  padding: 3px 10px;
-  border-radius: 10px;
+  padding: 3px 9px;
+  border-radius: 8px;
   margin-top: 6px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: #fff;
 }
-.status-tag.complete { background: var(--grad-success); }
-.status-tag.partial  { background: var(--grad-warm); }
+.status-tag.complete { background: var(--success); }
+.status-tag.partial  {
+  background: var(--warn);
+  color: #0f172a;
+}
+:root[data-theme="light"] .status-tag.partial { color: #fff; }
 
 .history-delete-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: none;
   background: transparent;
   color: var(--text-dim);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
@@ -783,29 +950,32 @@ html, body {
 
 .history-delete-btn:active,
 .history-delete-btn:hover {
-  background: rgba(255, 59, 92, 0.12);
+  background: var(--danger-dim);
   color: var(--danger);
 }
 
-/* ---------- Danger zone / Footer ---------- */
+/* ==========================================================
+   DANGER ZONE / FOOTER
+   ========================================================== */
+
 .danger-zone {
   margin-top: 28px;
   padding-top: 20px;
-  border-top: 2px dashed var(--border);
+  border-top: 1px dashed var(--border);
 }
 
 .footer {
   text-align: center;
   padding: 26px 0 10px;
   color: var(--text-dim);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   letter-spacing: 0.5px;
   font-weight: 600;
 }
 
 .build-info {
   margin-top: 6px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-dim);
   opacity: 0.65;
@@ -813,7 +983,7 @@ html, body {
 }
 
 /* ==========================================================
-   GUIDED / COACHED SCREEN STYLES
+   GUIDED / COACHED SCREENS
    ========================================================== */
 
 .guided-card {
@@ -826,25 +996,25 @@ html, body {
 }
 
 .guided-title {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
 }
 
 .guided-sub {
   color: var(--text-dim);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   margin-bottom: 20px;
   font-weight: 500;
 }
 
 .plan-preview {
-  background: var(--surface-2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
   padding: 14px 18px;
   margin-bottom: 14px;
 }
@@ -854,8 +1024,8 @@ html, body {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.98rem;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 0.95rem;
 }
 
 .plan-preview-row:last-child { border-bottom: none; }
@@ -872,7 +1042,7 @@ html, body {
 
 .round-label {
   color: var(--text-dim);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -880,23 +1050,20 @@ html, body {
 }
 
 .round-number {
-  font-size: 7rem;
+  font-size: 6rem;
   font-weight: 900;
   line-height: 1;
-  background: var(--grad-primary);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
   margin: 10px 0 18px;
 }
 
 .exercise-icon {
-  font-size: 4rem;
+  font-size: 3.5rem;
   margin-bottom: 10px;
 }
 
 .exercise-name {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: var(--text);
   margin-bottom: 6px;
@@ -905,12 +1072,13 @@ html, body {
 }
 
 .exercise-target {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: var(--orange);
-  background: rgba(255, 107, 53, 0.1);
-  padding: 8px 20px;
-  border-radius: 20px;
+  color: var(--primary);
+  background: var(--primary-dim);
+  border: 1px solid var(--primary);
+  padding: 7px 18px;
+  border-radius: 18px;
   display: inline-block;
   margin: 0 auto 14px;
   align-self: center;
@@ -919,14 +1087,12 @@ html, body {
 .timer-section { margin-bottom: 20px; }
 
 .timer-display {
-  font-size: 5rem;
+  font-size: 4.5rem;
   font-weight: 900;
   line-height: 1;
-  background: var(--grad-accent);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--info);
   margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-display.running {
@@ -935,12 +1101,12 @@ html, body {
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  50% { transform: scale(1.04); }
 }
 
 .timer-label {
   color: var(--text-dim);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -948,27 +1114,27 @@ html, body {
 }
 
 .check-mark {
-  font-size: 4rem;
-  width: 100px;
-  height: 100px;
+  font-size: 3.2rem;
+  width: 90px;
+  height: 90px;
   margin: 0 auto 16px;
   border-radius: 50%;
-  background: var(--grad-success);
+  background: var(--success);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 24px rgba(31, 201, 122, 0.35);
+  box-shadow: 0 0 0 6px var(--success-dim);
 }
 
 .check-mark.big {
-  background: var(--grad-warm);
-  box-shadow: 0 8px 24px rgba(255, 201, 60, 0.4);
-  font-size: 3.5rem;
+  background: var(--primary);
+  box-shadow: 0 0 0 6px var(--primary-dim);
+  font-size: 3rem;
 }
 
 .rest-timer {
-  font-size: 2.5rem;
+  font-size: 2.3rem;
   font-weight: 800;
   color: var(--text);
   margin: 16px 0 20px;
@@ -982,7 +1148,7 @@ html, body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(26, 26, 46, 0.75);
+  background: rgba(0, 0, 0, 0.75);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -1000,14 +1166,15 @@ html, body {
 
 .modal {
   background: var(--surface);
-  border-radius: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
   padding: 24px 20px 20px;
   max-width: 460px;
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-lg);
   animation: slideUp 0.25s ease-out;
 }
 
@@ -1021,12 +1188,12 @@ html, body {
   top: 10px;
   right: 12px;
   background: var(--surface-2);
-  border: none;
+  border: 1px solid var(--border);
   color: var(--text);
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   cursor: pointer;
   font-family: inherit;
   font-weight: 700;
@@ -1036,8 +1203,10 @@ html, body {
   justify-content: center;
 }
 
+.modal-close:active { background: var(--border); }
+
 .modal-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   margin-bottom: 14px;
   text-transform: uppercase;
@@ -1049,14 +1218,19 @@ html, body {
 .modal-image-wrap {
   width: 100%;
   height: 220px;
-  background: var(--surface-2);
-  border-radius: 12px;
+  background: var(--bg);
+  border-radius: 10px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-soft);
+}
+
+/* Invert the line-art anatomy SVGs in dark mode so they're visible against dark backgrounds */
+:root[data-theme="dark"] .modal-image {
+  filter: invert(0.92) hue-rotate(180deg);
 }
 
 .modal-image {
@@ -1066,21 +1240,21 @@ html, body {
 }
 
 .modal-image-fallback {
-  font-size: 4rem;
+  font-size: 3.5rem;
 }
 
 .modal-muscles {
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--orange);
+  color: var(--primary);
   text-align: center;
   margin-bottom: 10px;
 }
 
 .modal-description {
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   color: var(--text);
   line-height: 1.55;
   text-align: left;
