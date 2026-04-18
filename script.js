@@ -1,28 +1,66 @@
 /* ==========================================================
    GymUp — Workout Tracker
-   Version: 3.0.0
+   Version: 3.1.0
    Build:   2026-04-18
-   Changes in v3.0.0:
-   - Per-exercise counts instead of booleans
-   - TOTAL_ROUNDS constant replaces hardcoded "4"s
-   - Optional duration + calories metrics
-   - Four explicit workout statuses
-   - Status tag shown in history
-   - Build info footer
+
+   New in v3.1.0:
+   - Per-exercise live timing (captures seconds per set)
+   - Per-round rest timing
+   - Effort rating (RPE 1-10)
+   - Exercise info modal with muscle images + descriptions
+   - Round-by-round timing breakdown in summary
    ========================================================== */
 
-const APP_VERSION = "3.0.0";
+const APP_VERSION = "3.1.0";
 const BUILD_DATE  = "2026-04-18";
 
 const STORAGE_KEY  = "gymup_workouts";
 const TOTAL_ROUNDS = 4;
 
-// ---------- Exercise definitions (used by guided mode) ----------
+// ---------- Exercise definitions ----------
+// Image URLs are Wikimedia Commons public domain anatomy images.
+// If a URL fails to load, a fallback emoji is shown.
 const EXERCISES = [
-  { id: "pushups", name: "Push-ups", target: "12 reps", icon: "💪", timer: null },
-  { id: "situps",  name: "Sit-ups",  target: "15 reps", icon: "🔥", timer: null },
-  { id: "squats",  name: "Squats",   target: "15 reps", icon: "🦵", timer: null },
-  { id: "plank",   name: "Plank",    target: "20 sec",  icon: "🧱", timer: 20 }
+  {
+    id: "pushups",
+    name: "Push-ups",
+    target: "12 reps",
+    icon: "💪",
+    timer: null,
+    muscles: "Chest • Shoulders • Triceps • Core",
+    description: "Push-ups build pressing strength across the chest (pectoralis major), shoulders (anterior deltoids), and triceps, while the core works isometrically to keep the body rigid. Progressive overload with push-ups develops upper-body pushing power and scapular stability that transfers to almost every lifting and carrying task.",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Pushup-2.svg/500px-Pushup-2.svg.png"
+  },
+  {
+    id: "situps",
+    name: "Sit-ups",
+    target: "15 reps",
+    icon: "🔥",
+    timer: null,
+    muscles: "Rectus Abdominis • Hip Flexors • Obliques",
+    description: "Sit-ups train the full abdominal wall, particularly the rectus abdominis (the 'six-pack' muscle), along with the hip flexors that lift the torso and the obliques that stabilize the spine. A strong midsection protects the lower back, improves posture, and transfers force efficiently between upper and lower body.",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Sit-up.svg/500px-Sit-up.svg.png"
+  },
+  {
+    id: "squats",
+    name: "Squats",
+    target: "15 reps",
+    icon: "🦵",
+    timer: null,
+    muscles: "Quadriceps • Glutes • Hamstrings • Calves",
+    description: "Squats build the largest muscles in the body — the quadriceps on the front of the thigh, the gluteus maximus, and the hamstrings — along with strong calves and a braced core. They drive functional lower-body strength for running, climbing, jumping, and carrying, and trigger a strong systemic hormonal response.",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Squats.svg/500px-Squats.svg.png"
+  },
+  {
+    id: "plank",
+    name: "Plank",
+    target: "20 sec",
+    icon: "🧱",
+    timer: 20,
+    muscles: "Core • Shoulders • Glutes • Back",
+    description: "The plank is an isometric hold that trains the entire core to resist movement rather than create it — building exactly the kind of stability your spine needs for heavy lifting, sports, and daily life. Shoulders, glutes, and upper back all contribute to holding a straight, rigid line from head to heels.",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Plank.svg/500px-Plank.svg.png"
+  }
 ];
 
 // ---------- Mode toggle ----------
@@ -71,7 +109,11 @@ const summarySection = document.getElementById("summarySection");
 const summaryContent = document.getElementById("summaryContent");
 const historyList    = document.getElementById("historyList");
 
-// ---------- Initialize on load ----------
+// Quick RPE
+let quickRpe = null;
+const quickRpeScale = document.getElementById("quickRpeScale");
+initRpeScale(quickRpeScale, (val) => { quickRpe = val; });
+
 document.addEventListener("DOMContentLoaded", () => {
   setTodayAsDefault();
   updateRoundStatus();
@@ -79,12 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBuildInfo();
 });
 
-// Show app version + build date in footer
 function renderBuildInfo() {
   const el = document.getElementById("buildInfo");
-  if (el) {
-    el.textContent = `GymUp v${APP_VERSION} \u2022 Build ${BUILD_DATE}`;
-  }
+  if (el) el.textContent = `GymUp v${APP_VERSION} \u2022 Build ${BUILD_DATE}`;
 }
 
 function setTodayAsDefault() {
@@ -110,8 +149,6 @@ saveBtn.addEventListener("click", () => {
 });
 
 function gatherQuickData() {
-  // For Quick Log, per-round counts aren't tracked, so we infer:
-  // if the exercise box is checked, assume it was done in every completed round.
   const roundsCompleted = Array.from(roundChecks).filter(cb => cb.checked).length;
   return {
     date:              dateInput.value || isoDateFromDate(new Date()),
@@ -122,6 +159,9 @@ function gatherQuickData() {
       squats:  squatsEl.checked  ? roundsCompleted : 0,
       plank:   plankEl.checked   ? roundsCompleted : 0
     },
+    // Quick mode does not track per-round timing
+    exerciseTimings: null,
+    restTimings: null,
     pushupsCompleted:  pushupsEl.checked && roundsCompleted === TOTAL_ROUNDS,
     situpsCompleted:   situpsEl.checked  && roundsCompleted === TOTAL_ROUNDS,
     squatsCompleted:   squatsEl.checked  && roundsCompleted === TOTAL_ROUNDS,
@@ -130,6 +170,7 @@ function gatherQuickData() {
     milesWalked:       parseFloat(milesEl.value) || 0,
     durationMinutes:   parseInt(durationEl?.value, 10) || 0,
     caloriesBurned:    parseInt(caloriesEl?.value, 10) || 0,
+    exertionRating:    quickRpe,
     notes:             notesEl.value.trim(),
     mode:              "quick",
     timestamp:         Date.now()
@@ -147,6 +188,8 @@ resetFormBtn.addEventListener("click", () => {
   if (durationEl) durationEl.value = "";
   if (caloriesEl) caloriesEl.value = "";
   roundChecks.forEach(cb => cb.checked = false);
+  quickRpe = null;
+  clearRpeScale(quickRpeScale);
   updateRoundStatus();
   summarySection.classList.add("hidden");
   setTodayAsDefault();
@@ -159,6 +202,27 @@ clearAllBtn.addEventListener("click", () => {
   renderHistory();
   summarySection.classList.add("hidden");
 });
+
+/* ==========================================================
+   RPE SCALE HELPERS
+   ========================================================== */
+
+function initRpeScale(scaleEl, onSelect) {
+  if (!scaleEl) return;
+  const buttons = scaleEl.querySelectorAll(".rpe-btn");
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      buttons.forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      onSelect(parseInt(btn.dataset.rpe, 10));
+    });
+  });
+}
+
+function clearRpeScale(scaleEl) {
+  if (!scaleEl) return;
+  scaleEl.querySelectorAll(".rpe-btn").forEach(b => b.classList.remove("selected"));
+}
 
 /* ==========================================================
    GUIDED WORKOUT MODE
@@ -178,6 +242,7 @@ const startWorkoutBtn    = document.getElementById("startWorkoutBtn");
 const beginRoundBtn      = document.getElementById("beginRoundBtn");
 const exerciseDoneBtn    = document.getElementById("exerciseDoneBtn");
 const exerciseBackBtn    = document.getElementById("exerciseBackBtn");
+const exerciseInfoBtn    = document.getElementById("exerciseInfoBtn");
 const nextRoundBtn       = document.getElementById("nextRoundBtn");
 const walkDoneBtn        = document.getElementById("walkDoneBtn");
 const walkSkipBtn        = document.getElementById("walkSkipBtn");
@@ -191,6 +256,7 @@ const exerciseRoundLabel = document.getElementById("exerciseRoundLabel");
 const exerciseIcon       = document.getElementById("exerciseIcon");
 const exerciseName       = document.getElementById("exerciseName");
 const exerciseTarget     = document.getElementById("exerciseTarget");
+const exerciseLiveTimer  = document.getElementById("exerciseLiveTimer");
 const timerSection       = document.getElementById("timerSection");
 const timerDisplay       = document.getElementById("timerDisplay");
 const restTitle          = document.getElementById("restTitle");
@@ -201,19 +267,37 @@ const guidedDuration     = document.getElementById("guidedDuration");
 const guidedCalories     = document.getElementById("guidedCalories");
 const guidedSummaryContent = document.getElementById("guidedSummaryContent");
 
+// Modal elements
+const infoModal       = document.getElementById("infoModal");
+const modalCloseBtn   = document.getElementById("modalCloseBtn");
+const modalTitle      = document.getElementById("modalTitle");
+const modalImage      = document.getElementById("modalImage");
+const modalFallback   = document.getElementById("modalFallback");
+const modalMuscles    = document.getElementById("modalMuscles");
+const modalDescription = document.getElementById("modalDescription");
+
+// Guided RPE
+let guidedRpe = null;
+const guidedRpeScale = document.getElementById("guidedRpeScale");
+initRpeScale(guidedRpeScale, (val) => { guidedRpe = val; });
+
 let guidedState = freshGuidedState();
-let timerInterval = null;
-let restInterval  = null;
+let timerInterval    = null;  // plank countdown
+let restInterval     = null;  // between-round rest counter
+let exerciseInterval = null;  // live per-exercise timer
+let exerciseStartMs  = 0;     // when current exercise started
+let restStartMs      = 0;     // when current rest started
 
 function freshGuidedState() {
   return {
     currentRound: 0,
     currentExercise: 0,
     roundsCompleted: 0,
-    // Counts each "Done" tap per exercise across all rounds
-    exerciseCounts: {
-      pushups: 0, situps: 0, squats: 0, plank: 0
-    },
+    exerciseCounts:  { pushups: 0, situps: 0, squats: 0, plank: 0 },
+    // NEW: array of seconds per round for each exercise
+    exerciseTimings: { pushups: [], situps: [], squats: [], plank: [] },
+    // NEW: seconds of rest between rounds (length = rounds - 1 after completion)
+    restTimings: [],
     walkCompleted: false,
     milesWalked: 0,
     notes: "",
@@ -229,6 +313,8 @@ function showScreen(key) {
 function resetGuided() {
   stopAllTimers();
   guidedState = freshGuidedState();
+  guidedRpe = null;
+  clearRpeScale(guidedRpeScale);
   showScreen("start");
 }
 
@@ -271,10 +357,75 @@ function showExercise() {
     timerSection.classList.add("hidden");
   }
 
+  // Start live timing for this exercise
+  startExerciseLiveTimer();
   showScreen("exercise");
 }
 
-// ---------- Plank timer ----------
+// ---------- Live per-exercise timer (counts up) ----------
+function startExerciseLiveTimer() {
+  stopExerciseLiveTimer();
+  exerciseStartMs = Date.now();
+  exerciseLiveTimer.textContent = "0:00";
+  exerciseInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - exerciseStartMs) / 1000);
+    exerciseLiveTimer.textContent = formatSeconds(elapsed);
+  }, 1000);
+}
+
+function stopExerciseLiveTimer() {
+  if (exerciseInterval) {
+    clearInterval(exerciseInterval);
+    exerciseInterval = null;
+  }
+}
+
+function captureExerciseTime() {
+  if (!exerciseStartMs) return 0;
+  const secs = Math.max(1, Math.floor((Date.now() - exerciseStartMs) / 1000));
+  exerciseStartMs = 0;
+  return secs;
+}
+
+// ---------- Info modal ----------
+exerciseInfoBtn.addEventListener("click", () => {
+  const ex = EXERCISES[guidedState.currentExercise];
+  openInfoModal(ex);
+});
+
+function openInfoModal(ex) {
+  modalTitle.textContent = ex.name;
+  modalMuscles.textContent = ex.muscles;
+  modalDescription.textContent = ex.description;
+
+  // Image with graceful fallback
+  modalFallback.classList.add("hidden");
+  modalImage.classList.remove("hidden");
+  modalFallback.textContent = ex.icon;
+  modalImage.onerror = () => {
+    modalImage.classList.add("hidden");
+    modalFallback.classList.remove("hidden");
+  };
+  modalImage.onload = () => {
+    modalImage.classList.remove("hidden");
+    modalFallback.classList.add("hidden");
+  };
+  modalImage.src = ex.image;
+  modalImage.alt = `${ex.name} anatomy`;
+
+  infoModal.classList.remove("hidden");
+}
+
+function closeInfoModal() {
+  infoModal.classList.add("hidden");
+}
+
+modalCloseBtn.addEventListener("click", closeInfoModal);
+infoModal.addEventListener("click", (e) => {
+  if (e.target === infoModal) closeInfoModal();
+});
+
+// ---------- Plank countdown timer ----------
 timerStartBtn.addEventListener("click", () => {
   const ex = EXERCISES[guidedState.currentExercise];
   if (!ex.timer) return;
@@ -310,9 +461,12 @@ function stopExerciseTimer() {
 // ---------- Exercise controls ----------
 exerciseDoneBtn.addEventListener("click", () => {
   const ex = EXERCISES[guidedState.currentExercise];
-  // Increment count for the exercise just completed
-  guidedState.exerciseCounts[ex.id] += 1;
+  const elapsed = captureExerciseTime();
+  stopExerciseLiveTimer();
   stopExerciseTimer();
+
+  guidedState.exerciseCounts[ex.id] += 1;
+  guidedState.exerciseTimings[ex.id].push(elapsed);
 
   if (guidedState.currentExercise < EXERCISES.length - 1) {
     guidedState.currentExercise += 1;
@@ -324,12 +478,14 @@ exerciseDoneBtn.addEventListener("click", () => {
 });
 
 exerciseBackBtn.addEventListener("click", () => {
+  stopExerciseLiveTimer();
   stopExerciseTimer();
   if (guidedState.currentExercise > 0) {
-    // Back means the previous Done was a mistake; decrement that exercise's count
+    // Undo the previous exercise's count and its last timing
     const prevEx = EXERCISES[guidedState.currentExercise - 1];
     if (guidedState.exerciseCounts[prevEx.id] > 0) {
       guidedState.exerciseCounts[prevEx.id] -= 1;
+      guidedState.exerciseTimings[prevEx.id].pop();
     }
     guidedState.currentExercise -= 1;
     showExercise();
@@ -351,13 +507,11 @@ function showRest() {
 
 function startRestTimer() {
   stopRestTimer();
-  const start = Date.now();
+  restStartMs = Date.now();
   restTimer.textContent = "0:00";
   restInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - start) / 1000);
-    const mins = Math.floor(elapsed / 60);
-    const secs = elapsed % 60;
-    restTimer.textContent = `${mins}:${String(secs).padStart(2, "0")}`;
+    const elapsed = Math.floor((Date.now() - restStartMs) / 1000);
+    restTimer.textContent = formatSeconds(elapsed);
   }, 1000);
 }
 
@@ -368,8 +522,20 @@ function stopRestTimer() {
   }
 }
 
+function captureRestTime() {
+  if (!restStartMs) return 0;
+  const secs = Math.max(0, Math.floor((Date.now() - restStartMs) / 1000));
+  restStartMs = 0;
+  return secs;
+}
+
 nextRoundBtn.addEventListener("click", () => {
+  // Capture rest duration (skip capturing if this was the final "Continue to Walk" press;
+  // we still save the last rest so you see how long you rested before the walk)
+  const restSecs = captureRestTime();
   stopRestTimer();
+  guidedState.restTimings.push(restSecs);
+
   if (guidedState.currentRound >= TOTAL_ROUNDS) {
     showScreen("walk");
   } else {
@@ -396,11 +562,12 @@ guidedSaveBtn.addEventListener("click", () => {
   guidedState.notes = guidedNotes.value.trim();
   const counts = guidedState.exerciseCounts;
 
-  // Completion only when count matches every round
   const workout = {
     date:              isoDateFromDate(new Date()),
     roundsCompleted:   guidedState.roundsCompleted,
     exerciseCounts:    { ...counts },
+    exerciseTimings:   JSON.parse(JSON.stringify(guidedState.exerciseTimings)),
+    restTimings:       [...guidedState.restTimings],
     pushupsCompleted:  counts.pushups === TOTAL_ROUNDS,
     situpsCompleted:   counts.situps  === TOTAL_ROUNDS,
     squatsCompleted:   counts.squats  === TOTAL_ROUNDS,
@@ -409,6 +576,7 @@ guidedSaveBtn.addEventListener("click", () => {
     milesWalked:       guidedState.milesWalked,
     durationMinutes:   parseInt(guidedDuration?.value, 10) || 0,
     caloriesBurned:    parseInt(guidedCalories?.value, 10) || 0,
+    exertionRating:    guidedRpe,
     notes:             guidedState.notes,
     mode:              "guided",
     timestamp:         Date.now()
@@ -429,10 +597,11 @@ guidedNewBtn.addEventListener("click", () => {
 function stopAllTimers() {
   stopExerciseTimer();
   stopRestTimer();
+  stopExerciseLiveTimer();
 }
 
 /* ==========================================================
-   STATUS LOGIC (centralized)
+   STATUS LOGIC
    ========================================================== */
 
 function computeStatus(w) {
@@ -456,7 +625,7 @@ function computeStatus(w) {
 }
 
 /* ==========================================================
-   SHARED: save / summary / history
+   SUMMARY + HISTORY
    ========================================================== */
 
 function commitWorkout(workout) {
@@ -489,28 +658,82 @@ function renderSummary(w, targetEl, containerEl) {
   const status = computeStatus(w);
   const milesText = w.milesWalked > 0 ? ` (${w.milesWalked} mi)` : "";
   const counts = w.exerciseCounts || {};
+  const timings = w.exerciseTimings || {};
 
-  // If counts are available, show "X/TOTAL_ROUNDS"; otherwise fall back to Yes/No
+  // Exercise row: shows count + optional per-round timing breakdown
   const exerciseRow = (label, id, doneBool) => {
     const n = counts[id];
-    if (typeof n === "number") {
-      const full = n === TOTAL_ROUNDS;
-      const cls  = full ? "yes" : (n > 0 ? "" : "no");
-      return `
-        <div class="summary-row">
-          <span class="label-text">${label}</span>
-          <span class="value ${cls}">${n}/${TOTAL_ROUNDS}</span>
-        </div>`;
-    }
-    return `
+    const roundTimes = timings[id];
+    const hasCount = typeof n === "number";
+
+    // Basic summary line
+    const countCls = hasCount
+      ? (n === TOTAL_ROUNDS ? "yes" : (n > 0 ? "" : "no"))
+      : "";
+    const countText = hasCount ? `${n}/${TOTAL_ROUNDS}` : null;
+
+    let html = `
       <div class="summary-row">
         <span class="label-text">${label}</span>
-        ${yesNo(doneBool)}
+        ${countText ? `<span class="value ${countCls}">${countText}</span>` : yesNo(doneBool)}
       </div>`;
+
+    // If we have per-round times, render a breakdown card
+    if (Array.isArray(roundTimes) && roundTimes.length > 0) {
+      const chips = [];
+      for (let i = 0; i < TOTAL_ROUNDS; i++) {
+        const t = roundTimes[i];
+        chips.push(`
+          <div class="round-time-chip">
+            R${i + 1}
+            <strong>${typeof t === "number" ? formatSeconds(t) : "—"}</strong>
+          </div>`);
+      }
+      const validTimes = roundTimes.filter(t => typeof t === "number" && t > 0);
+      const total = validTimes.reduce((a, b) => a + b, 0);
+      const avg = validTimes.length > 0 ? Math.round(total / validTimes.length) : 0;
+      html += `
+        <div class="exercise-breakdown">
+          <div class="exercise-breakdown-title">
+            <span>${label} — Round Times</span>
+          </div>
+          <div class="exercise-breakdown-rounds">${chips.join("")}</div>
+          <div class="exercise-breakdown-totals">
+            Total: ${formatSeconds(total)} &bull; Avg: ${formatSeconds(avg)}
+          </div>
+        </div>`;
+    }
+
+    return html;
   };
 
-  // Optional metrics rows
-  let metricsHtml = "";
+  // Rest timing breakdown
+  let restHtml = "";
+  if (Array.isArray(w.restTimings) && w.restTimings.length > 0) {
+    const chips = w.restTimings.map((secs, i) => `
+      <div class="round-time-chip">
+        Rest ${i + 1}
+        <strong>${formatSeconds(secs)}</strong>
+      </div>`);
+    // Pad with empty chips if fewer than 4 rests
+    while (chips.length < TOTAL_ROUNDS) {
+      chips.push(`<div class="round-time-chip">Rest ${chips.length + 1}<strong>—</strong></div>`);
+    }
+    const validRests = w.restTimings.filter(t => typeof t === "number");
+    const totalRest = validRests.reduce((a, b) => a + b, 0);
+    restHtml = `
+      <div class="exercise-breakdown">
+        <div class="exercise-breakdown-title">
+          <span>Rest Between Rounds</span>
+        </div>
+        <div class="exercise-breakdown-rounds">${chips.slice(0, TOTAL_ROUNDS).join("")}</div>
+        <div class="exercise-breakdown-totals">
+          Total rest: ${formatSeconds(totalRest)}
+        </div>
+      </div>`;
+  }
+
+  // Optional metrics
   const metricParts = [];
   if (w.durationMinutes > 0) metricParts.push(`
     <div class="summary-row">
@@ -522,7 +745,12 @@ function renderSummary(w, targetEl, containerEl) {
       <span class="label-text">🔥 Calories</span>
       <span class="value">${w.caloriesBurned}</span>
     </div>`);
-  metricsHtml = metricParts.join("");
+  if (typeof w.exertionRating === "number") metricParts.push(`
+    <div class="summary-row">
+      <span class="label-text">💥 Effort</span>
+      <span class="value">${w.exertionRating}/10</span>
+    </div>`);
+  const metricsHtml = metricParts.join("");
 
   targetEl.innerHTML = `
     <div class="summary-date">${formatDate(w.date)}</div>
@@ -536,6 +764,7 @@ function renderSummary(w, targetEl, containerEl) {
     ${exerciseRow("Sit-ups",  "situps",  w.situpsCompleted)}
     ${exerciseRow("Squats",   "squats",  w.squatsCompleted)}
     ${exerciseRow("Plank",    "plank",   w.plankCompleted)}
+    ${restHtml}
     <div class="summary-row">
       <span class="label-text">Walk${milesText}</span>
       ${yesNo(w.walkCompleted)}
@@ -571,10 +800,10 @@ function renderHistory() {
       : "Walk: No";
     const modeTag = w.mode === "guided" ? " &bull; Guided" : "";
 
-    // Optional metrics in history
     const metricBits = [];
     if (w.durationMinutes > 0) metricBits.push(`${w.durationMinutes} min`);
     if (w.caloriesBurned > 0)  metricBits.push(`${w.caloriesBurned} cal`);
+    if (typeof w.exertionRating === "number") metricBits.push(`RPE ${w.exertionRating}`);
     const metricText = metricBits.length
       ? ` &nbsp;&bull;&nbsp; ${metricBits.join(" &bull; ")}`
       : "";
@@ -599,6 +828,13 @@ function renderHistory() {
 /* ==========================================================
    Utilities
    ========================================================== */
+
+function formatSeconds(totalSecs) {
+  if (typeof totalSecs !== "number" || isNaN(totalSecs)) return "0:00";
+  const m = Math.floor(totalSecs / 60);
+  const s = totalSecs % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 function formatDate(isoDate) {
   const [y, m, d] = isoDate.split("-").map(Number);

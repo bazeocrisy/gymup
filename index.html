@@ -30,13 +30,11 @@
          ============================================ -->
     <main id="quickMode">
 
-      <!-- DATE -->
       <section class="card">
         <label for="workoutDate" class="label">📅 Date</label>
         <input type="date" id="workoutDate" class="date-input" />
       </section>
 
-      <!-- WORKOUT PLAN -->
       <section class="card plan-card">
         <h2 class="card-title">🎯 Today's Plan</h2>
         <ul class="plan-list">
@@ -49,7 +47,6 @@
         </ul>
       </section>
 
-      <!-- EXERCISE TRACKING -->
       <section class="card">
         <h2 class="card-title">🔥 Exercises</h2>
         <div class="check-list">
@@ -72,7 +69,6 @@
         </div>
       </section>
 
-      <!-- ROUND TRACKING -->
       <section class="card">
         <h2 class="card-title">⚡ Rounds Completed</h2>
         <div class="round-grid">
@@ -96,7 +92,6 @@
         <p class="round-status" id="roundStatus">0 of 4 rounds complete</p>
       </section>
 
-      <!-- WALK TRACKING -->
       <section class="card">
         <h2 class="card-title">🚶 Walk</h2>
         <p class="goal-text">Goal: 3 miles</p>
@@ -108,7 +103,6 @@
         <input type="number" id="miles" class="text-input" min="0" step="0.1" placeholder="e.g. 3.0" />
       </section>
 
-      <!-- NOTES + METRICS -->
       <section class="card">
         <h2 class="card-title">📝 Notes</h2>
         <textarea id="notes" class="notes-input" rows="4" placeholder="Energy, soreness, knees, anything learned..."></textarea>
@@ -123,19 +117,30 @@
             <input type="number" id="calories" class="text-input" min="0" step="1" placeholder="e.g. 180" />
           </div>
         </div>
+
+        <label class="label label-inline">💥 Effort (1-10, optional)</label>
+        <div class="rpe-scale" id="quickRpeScale">
+          <button type="button" class="rpe-btn" data-rpe="1">1</button>
+          <button type="button" class="rpe-btn" data-rpe="2">2</button>
+          <button type="button" class="rpe-btn" data-rpe="3">3</button>
+          <button type="button" class="rpe-btn" data-rpe="4">4</button>
+          <button type="button" class="rpe-btn" data-rpe="5">5</button>
+          <button type="button" class="rpe-btn" data-rpe="6">6</button>
+          <button type="button" class="rpe-btn" data-rpe="7">7</button>
+          <button type="button" class="rpe-btn" data-rpe="8">8</button>
+          <button type="button" class="rpe-btn" data-rpe="9">9</button>
+          <button type="button" class="rpe-btn" data-rpe="10">10</button>
+        </div>
       </section>
 
-      <!-- SAVE BUTTON -->
       <button id="saveBtn" class="btn btn-primary">Save Workout</button>
       <button id="resetFormBtn" class="btn btn-ghost">Reset Today's Form</button>
 
-      <!-- SUMMARY (hidden until saved) -->
       <section class="card summary-card hidden" id="summarySection">
         <h2 class="card-title">🏆 Workout Summary</h2>
         <div id="summaryContent"></div>
       </section>
 
-      <!-- HISTORY -->
       <section class="card">
         <h2 class="card-title">📊 History</h2>
         <div id="historyList" class="history-list">
@@ -143,7 +148,6 @@
         </div>
       </section>
 
-      <!-- DANGER ZONE -->
       <section class="danger-zone">
         <button id="clearAllBtn" class="btn btn-danger">Clear All Saved Data</button>
       </section>
@@ -155,7 +159,6 @@
          ============================================ -->
     <main id="guidedMode" class="hidden">
 
-      <!-- START SCREEN -->
       <section class="card guided-card" id="guidedStart">
         <h2 class="guided-title">Ready to Train?</h2>
         <p class="guided-sub">4 rounds &bull; 4 exercises per round &bull; 3-mile walk</p>
@@ -168,7 +171,6 @@
         <button id="startWorkoutBtn" class="btn btn-primary btn-xl">Start Workout</button>
       </section>
 
-      <!-- ROUND INTRO -->
       <section class="card guided-card hidden" id="guidedRoundIntro">
         <p class="round-label" id="roundLabel">Round 1 of 4</p>
         <div class="round-number" id="roundNumber">1</div>
@@ -176,14 +178,19 @@
         <button id="beginRoundBtn" class="btn btn-primary btn-xl">Begin Round</button>
       </section>
 
-      <!-- EXERCISE SCREEN -->
       <section class="card guided-card hidden" id="guidedExercise">
         <p class="round-label" id="exerciseRoundLabel">Round 1 of 4</p>
         <div class="exercise-icon" id="exerciseIcon">🔥</div>
         <h2 class="exercise-name" id="exerciseName">Push-ups</h2>
         <div class="exercise-target" id="exerciseTarget">12 reps</div>
 
-        <!-- Timer (only shown for plank) -->
+        <!-- Info button -->
+        <button id="exerciseInfoBtn" class="info-btn" type="button">ⓘ Muscles &amp; Info</button>
+
+        <!-- Active exercise timer (counts up) -->
+        <div class="exercise-timer" id="exerciseLiveTimer">0:00</div>
+
+        <!-- Plank countdown timer (only shown for plank) -->
         <div class="timer-section hidden" id="timerSection">
           <div class="timer-display" id="timerDisplay">20</div>
           <div class="timer-label">seconds</div>
@@ -194,7 +201,6 @@
         <button id="exerciseBackBtn" class="btn btn-ghost">Back</button>
       </section>
 
-      <!-- ROUND COMPLETE / REST -->
       <section class="card guided-card hidden" id="guidedRest">
         <div class="check-mark">✓</div>
         <h2 class="guided-title" id="restTitle">Round 1 Complete</h2>
@@ -203,7 +209,6 @@
         <button id="nextRoundBtn" class="btn btn-primary btn-xl">Next Round</button>
       </section>
 
-      <!-- WALK SCREEN -->
       <section class="card guided-card hidden" id="guidedWalk">
         <div class="exercise-icon">🚶</div>
         <h2 class="exercise-name">Walk</h2>
@@ -215,11 +220,10 @@
         <button id="walkSkipBtn" class="btn btn-ghost">Skip Walk</button>
       </section>
 
-      <!-- FINAL NOTES + SAVE -->
       <section class="card guided-card hidden" id="guidedFinish">
         <div class="check-mark big">🏆</div>
         <h2 class="guided-title">Workout Complete</h2>
-        <p class="guided-sub">Add any notes from today, then save.</p>
+        <p class="guided-sub">Add notes, rate your effort, then save.</p>
         <textarea id="guidedNotes" class="notes-input" rows="4" placeholder="Energy, soreness, knees, anything learned..."></textarea>
 
         <div class="metrics-row">
@@ -233,10 +237,23 @@
           </div>
         </div>
 
+        <label class="label label-inline">💥 How hard was that? (1-10)</label>
+        <div class="rpe-scale" id="guidedRpeScale">
+          <button type="button" class="rpe-btn" data-rpe="1">1</button>
+          <button type="button" class="rpe-btn" data-rpe="2">2</button>
+          <button type="button" class="rpe-btn" data-rpe="3">3</button>
+          <button type="button" class="rpe-btn" data-rpe="4">4</button>
+          <button type="button" class="rpe-btn" data-rpe="5">5</button>
+          <button type="button" class="rpe-btn" data-rpe="6">6</button>
+          <button type="button" class="rpe-btn" data-rpe="7">7</button>
+          <button type="button" class="rpe-btn" data-rpe="8">8</button>
+          <button type="button" class="rpe-btn" data-rpe="9">9</button>
+          <button type="button" class="rpe-btn" data-rpe="10">10</button>
+        </div>
+
         <button id="guidedSaveBtn" class="btn btn-primary btn-xl">Save Workout</button>
       </section>
 
-      <!-- GUIDED SUMMARY -->
       <section class="card summary-card hidden" id="guidedSummary">
         <h2 class="card-title">🏆 Workout Summary</h2>
         <div id="guidedSummaryContent"></div>
@@ -250,6 +267,20 @@
       <p class="build-info" id="buildInfo"></p>
     </footer>
 
+  </div>
+
+  <!-- EXERCISE INFO MODAL -->
+  <div class="modal-backdrop hidden" id="infoModal">
+    <div class="modal">
+      <button class="modal-close" id="modalCloseBtn" type="button">&times;</button>
+      <h2 class="modal-title" id="modalTitle">Push-ups</h2>
+      <div class="modal-image-wrap">
+        <img id="modalImage" alt="" class="modal-image" />
+        <div class="modal-image-fallback hidden" id="modalFallback">💪</div>
+      </div>
+      <p class="modal-muscles" id="modalMuscles"></p>
+      <p class="modal-description" id="modalDescription"></p>
+    </div>
   </div>
 
   <script src="script.js"></script>
